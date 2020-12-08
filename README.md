@@ -50,10 +50,10 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 <a href="images/connection_diagramm.png"><img src="images/connection_diagramm.png" width="250"></a>
 
-Здесь находится [диаграмма](https://easyeda.com/editor#id=ddc9071d732f415cb2ba157b1ce8f923|5c0b5124a6da439392efe447b6ff0a1b)
+Здесь находится [диаграмма](scheme)
 
 #### Mixer
-Последняя версия [миксера](https://paste.ubuntu.com/p/D6pyjJ9H5K/)
+Последняя версия [миксера](mixer)
 
 - Открываем файл прошивки из папки `mixer/mixer.ino`
 - Обновляем `ssid` и `password` для вашего WiFi.
