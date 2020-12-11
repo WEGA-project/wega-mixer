@@ -1,4 +1,11 @@
-### Install software 
+# WEGA-Mixer
+
+WEGA-Mixer это дозатор удобрений, который построен на ESP8266 и имеет веб интерфейс. 
+Целью данного дозера является автоматизированная дозировка необходимого количества(объема) удобрений из монорастворов.
+Так же WEGA-Mixer является отличным/важным дополнением к [HPG](https://github.com/siv237/HPG) калькулятору и является важным звеном в [WEGA ecosystem](images/wega-ecosystem.jpg)
+
+
+### Install software
 
 #### Arduino IDE
 [Install Arduino IDE](https://www.arduino.cc/en/software)
@@ -6,9 +13,10 @@
 Запускаем Arduino IDE и устанавливаем все необходимые библиотеки
 
 Tools -> Manage libraries -> search libraries
- - LiquidCrystal_I2C.h
- - Adafruit_MCP23017.h
- - HX711.h
+
+- LiquidCrystal_I2C.h
+- Adafruit_MCP23017.h
+- HX711.h
 
 Вы можете пропустить этот шаг если вы собираетесь использовать vscode IDE как основной
 
@@ -17,10 +25,13 @@ Tools -> Manage libraries -> search libraries
 Tools -> boards manager -> ESP8266 -> NodeMCU 1.0(ESP-12E)
 
 #### Visual Studio Code configuration
+<details>
+<p>
 Если вы планируете использовать vscode как основную IDE для работы с файлами ардуины вам потребуется установить [arduino plugin](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino) и сконфигурировать его для работы с вашей платой.
 
 [Здесь видео пример как это сделать](https://www.youtube.com/watch?v=FnEvJXpxxNM)
-
+</p>
+</details>
 
 #### Проверка правильности выбранных настроек
 Будем считать, что вы уже сконфигурировали вашу IDE для работы с платой. Теперь попробуем загрузить простой пример, маргание светодиодом.
@@ -45,14 +56,14 @@ const char* password = "YOUR_WIFI_PASSWORD";
 Это можно сделать на странице конфигурации вашего роутера.
 Рекомендуется прописать резервацию для этого IP, в этом случае каждый раз ваша плата будет получать один и тот же адрес.
 
-#### Подключение по схеме компонентов для миксера
+### Подключение по схеме компонентов для миксера
 Здесь можно видеть текущую схему подключения
 
 <a href="images/connection_diagramm.png"><img src="images/connection_diagramm.png" width="250"></a>
 
 Здесь находится [диаграмма](scheme)
 
-#### Mixer
+### Mixer(Dosator)
 Последняя версия [миксера](mixer)
 
 - Открываем файл прошивки из папки `mixer/mixer.ino`
@@ -95,8 +106,8 @@ etc.
 
 ### Калибровка весов/стола
 
-1. нужно взять точно известный вес в районе 500 грамм
-2. отметить две точки на которых будут стоять бутылки А и B
+1. Нужно взять точно известный вес в районе 500 грамм
+2. Отметить две точки на которых будут стоять бутылки А и B
 3. Перезагрузить систему с пустым столом.
 4. Поставить на точку А известный вес и подбирать значение `scale_calibration`
 
