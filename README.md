@@ -48,6 +48,7 @@ Tools -> boards manager -> ESP8266 -> NodeMCU 1.0(ESP-12E)
 #### Visual Studio Code configuration
 <details>
 <p>
+
 Если вы планируете использовать vscode как основную IDE для работы с файлами ардуины вам потребуется установить [arduino plugin](https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino) и сконфигурировать его для работы с вашей платой.
 
 [Здесь видео пример как это сделать](https://www.youtube.com/watch?v=FnEvJXpxxNM)
