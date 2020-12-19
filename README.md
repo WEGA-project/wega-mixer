@@ -1,13 +1,32 @@
 # WEGA-Mixer
 
-WEGA-Mixer это дозатор удобрений, который построен на ESP8266 и имеет веб интерфейс.
+WEGA-Mixer это дозатор удобрений, который выполнен на базе ESP8266 и имеет веб интерфейс.
+
 Целью данного дозатора, является автоматизированная дозировка необходимого количества(объема) удобрений из монорастворов.
 
-Так же `WEGA-Mixer` является отличным/важным дополнением к [HPG](https://github.com/siv237/HPG) калькулятору и является важным звеном в [WEGA ecosystem](images/wega-ecosystem.jpg)
+*WEGA-Mixer* является отличным/важным дополнением к [HPG](https://github.com/siv237/HPG) калькулятору из которого можно дозировать(печатать) раствор на прямую.
 
+Так же *WEGA-Mixer* является важным звеном в [WEGA ecosystem](images/wega-ecosystem.jpg)
 
+Содержание
+=================
+<!--ts-->
+* [Install software](#install)
+    * [Arduino IDE](#arduino)
+    * [Visual Studio Code configuration](#vscode)
+    * [Проверка правильности выбранных настроек](#config-check)
+    * [Проверка ESP и простой веб сервера](#esp-check)
+* [Подключение по схеме компонентов для миксера](#connections)
+* [Mixer(Dosator)](#mixer)
+* [Калибровка весов/стола](#scale-calibration)
+* [Важно](#important)
+
+<!--te-->
+
+<a name="install"></a>
 ### Install software
 
+<a name="arduino"></a>
 #### Arduino IDE
 [Install Arduino IDE](https://www.arduino.cc/en/software)
 
@@ -25,6 +44,7 @@ Tools -> Manage libraries -> search libraries
 
 Tools -> boards manager -> ESP8266 -> NodeMCU 1.0(ESP-12E)
 
+<a name="vscode"></a>
 #### Visual Studio Code configuration
 <details>
 <p>
@@ -34,6 +54,7 @@ Tools -> boards manager -> ESP8266 -> NodeMCU 1.0(ESP-12E)
 </p>
 </details>
 
+<a name="config-check"></a>
 #### Проверка правильности выбранных настроек
 Будем считать, что вы уже сконфигурировали вашу IDE для работы с платой. Теперь попробуем загрузить простой пример, маргание светодиодом.
 
@@ -42,6 +63,7 @@ File -> examples -> basics -> blink
 
 Как только процесс загрузки закончится вы должны увидеть как светодиод маргает на вашей ESP
 
+<a name="esp-check"></a>
 #### Проверка ESP и простой веб сервера
 - Открыть файл `web-ota-example` 
 - Изменить значения в файле на ваши
@@ -57,6 +79,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 Это можно сделать на странице конфигурации вашего роутера.
 Рекомендуется прописать резервацию для этого IP, в этом случае каждый раз ваша плата будет получать один и тот же адрес.
 
+<a name="connections"></a>
 ### Подключение по схеме компонентов для миксера
 Здесь можно видеть текущую схему подключения
 
@@ -64,6 +87,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 Здесь находится [диаграмма](scheme)
 
+<a name="mixer"></a>
 ### Mixer(Dosator)
 Последняя версия [миксера](mixer)
 
@@ -105,6 +129,7 @@ etc.
 
 Ну все, код залит, экран работает.
 
+<a name="scale-calibration"></a>
 ### Калибровка весов/стола
 
 1. Нужно взять точно известный вес в районе 500 грамм
@@ -130,6 +155,7 @@ etc.
 - scale_calibration = 2040
 
 
+<a name="important"></a>
 ### Важно
 
 Есть несколько ньюансов, которые необходио учитывать.
