@@ -56,6 +56,13 @@ Tools -> Manage libraries -> search libraries
 - Adafruit_MCP23017.h
 - HX711.h
 
+
+Еще один вариант, это загрузить/импортировать библиотеки из папки `libraries`, которые включены в этот репозиторий
+
+Открываем Arduino IDE и импортируем необходимые библиотеку из папки `libraries`
+
+<a href="images/add_libraries.png"><img src="images/add_libraries.png" width="250"></a>
+
 Вы можете пропустить этот шаг если вы собираетесь использовать vscode IDE как основной
 
 Выбираем правильную плату ESP
