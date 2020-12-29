@@ -163,7 +163,7 @@ etc.
 <a href="images/ota.png"><img src="images/ota.png" width="250"></a>
 
 Теперь все, что нужно это поменять порт и можно будет обновлять уже через WiFi.
-Более детальный пример использования OTA можно посмотреть [здесь](https://voltiq.ru/esp8266-ota-updates-with-arduino-ide/) (этот пример не относится к данному проекту)
+Более детальный пример конфигурирования OTA можно посмотреть [здесь](https://voltiq.ru/esp8266-ota-updates-with-arduino-ide/) (этот пример не относится к данному проекту)
 
 
 <a name="scale-calibration"></a>
