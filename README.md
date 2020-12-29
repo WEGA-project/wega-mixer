@@ -118,7 +118,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 Последняя версия [миксера](mixer)
 
 - Открываем файл прошивки из папки `mixer/mixer.ino`
-- Обновляем `ssid` и `password` для вашего WiFi.
+- Обновляем `ssid` - имя вашей сети и `password` - пароль для вашего WiFi.
 
 ```bash
 const char* ssid = "YOUR_WIFI_NETWORK_NAME";
