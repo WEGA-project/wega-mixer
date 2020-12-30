@@ -12,7 +12,8 @@ WEGA-Mixer это дозатор удобрений, который выполн
 =================
 <!--ts-->
 * [Минимальные требования и знания](#what_to_know)
-* [Install software](#install)
+* [Что потребуется купить(ардуино, драйвера, АЦП ...)](#what_to_buy)
+* [Установка софта](#install)
   * [Arduino IDE](#arduino)
   * [Visual Studio Code configuration](#vscode)
   * [Проверка правильности выбранных настроек](#config-check)
@@ -41,14 +42,45 @@ WEGA-Mixer это дозатор удобрений, который выполн
 Если, всего выше перечисленного или одного из выше перечисленного не знаешь, не умеешь, не понимаешь, найди человека, который соберет этот миксер за тебя.
 
 
+<a name="what_to_buy"></a>
+### Что потребуется купить(ардуино, драйвера, АЦП ...)
+
+Предположим, что у вас есть желание собрать миксер и вы обладаете, минимальными требованниями и знаниями для того, что бы все это собрать, спаять, залить и настроить. Отлично.
+Значит уже самое время закупить все необходимые компоненты.
+Ниже я приведу список, того, что покупалось лично мной и из чего собрал миксер лично я. Вы в праве подобрать аналоги, которые могут отличаться, а может быть и нет, в связи с этим нет никаких гарантий, что у вас будет все работать.
+
+Для данного миксера потребуются:
+- Насосы перистальтические. [Такие](https://www.aliexpress.com/item/4000602374795.html) или [такие](https://aliexpress.ru/item/4000045793568.html) как минимум 6, но лучше 8шт
+- [Модули L293D](https://aliexpress.ru/item/32987988286.html?&sku_id=66805515258) управления насосами (по одному на 2 насоса с реверсом) 3 или 4 соответственно
+- 16 канальный [MCP23S17 расширитель GPIO](https://aliexpress.ru/item/32840741707.html?&sku_id=65081375969)
+- [ESP8266](https://aliexpress.ru/item/32809158270.html?&sku_id=10000000428582330)
+- [LCD Экран I2C 1602](https://aliexpress.ru/item/1738714643.html?&sku_id=12000017422590841) с модулем на i2c
+- [АЦП датчика веса HX711](https://aliexpress.ru/item/32462156464.html?&sku_id=10000001648810250) с дополнительным экранированием (это важно именно такой)
+- [Тензодатчик на 1 кг](https://aliexpress.ru/item/4000078618409.html?&sku_id=10000000205070447)
+
 <a name="install"></a>
-### Install software
+### Установка софта(Install software)
 
 <a name="arduino"></a>
 #### Arduino IDE
 [Install Arduino IDE](https://www.arduino.cc/en/software)
 
-Запускаем Arduino IDE и устанавливаем все необходимые библиотеки
+Запускаем Arduino IDE, прописываем путь к `Additional Boards Manager URLs` для нашей ESP и устанавливаем все необходимые библиотеки
+
+**Additional Boards Manager URLs**
+
+File -> Preferences
+
+<a href="images/prefs.png"><img src="images/prefs.png" width="250"></a>
+
+И вставляем ссылку на конфиг и нажимаем OK.
+
+`http://arduino.esp8266.com/stable/package_esp8266com_index.json`
+
+<a href="images/esp_json.png"><img src="images/esp_json.png" width="250"></a>
+
+
+**Установка библиотек**
 
 Tools -> Manage libraries -> search libraries
 
@@ -59,7 +91,7 @@ Tools -> Manage libraries -> search libraries
 
 Еще один вариант, это загрузить/импортировать библиотеки из папки `libraries`, которые включены в этот репозиторий
 
-Открываем Arduino IDE и импортируем необходимые библиотеку из папки `libraries`
+Открываем `Arduino IDE` и импортируем необходимые библиотеку из папки `libraries`
 
 <a href="images/add_libraries.png"><img src="images/add_libraries.png" width="250"></a>
 
