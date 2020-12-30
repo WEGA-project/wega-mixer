@@ -64,7 +64,7 @@ ESP8266WebServer server(80);
 
 
 #include <Wire.h>
-#include "Adafruit_MCP23017.h"
+#include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp;
 
 // Pump #1
@@ -93,10 +93,10 @@ Adafruit_MCP23017 mcp;
 #define pump8r b7
 
 
-#include <LiquidCrystal_I2C.h>
+#include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
 
-#include "HX711.h"
+#include "src/HX711/src/HX711.h"
 const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
@@ -230,18 +230,18 @@ float v8=server.arg("p8").toFloat();
   server.send(200, "text/html", message);
 // A (1-3)
 scale.set_scale(scale_calibration); //A side
-  p1=pumping(v1, pump1,pump1r, "1:Ca", 5000);
-  p2=pumping(v2, pump2,pump2r, "2:KN", 5000);
-  p3=pumping(v3, pump3,pump3r, "3:NH", 7000);
+  p1=pumping(v1, pump1,pump1r, "1:Ca", 4000);
+  p2=pumping(v2, pump2,pump2r, "2:KN", 4000);
+  p3=pumping(v3, pump3,pump3r, "3:NH", 3500);
 
  
 // B (4-8)
 scale.set_scale(1738.f); //B side  
-  p4=pumping(v4, pump4,pump4r, "4:Mg", 5000);
-  p5=pumping(v5, pump5,pump5r, "5:KP", 5000);
-  p6=pumping(v6, pump6,pump6r, "6:KS", 5000);
-  p7=pumping(v7, pump7,pump7r, "7:Mk", 5000);
-  p8=pumping(v8, pump8,pump8r, "8:B", 5000); 
+  p4=pumping(v4, pump4,pump4r, "4:Mg", 4000);
+  p5=pumping(v5, pump5,pump5r, "5:KP", 4000);
+  p6=pumping(v6, pump6,pump6r, "6:KS", 4000);
+  p7=pumping(v7, pump7,pump7r, "7:Mk", 4000);
+  p8=pumping(v8, pump8,pump8r, "8:B", 4000); 
 
 WiFiClient client;
 HTTPClient http;
