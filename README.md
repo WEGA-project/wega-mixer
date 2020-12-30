@@ -17,7 +17,6 @@ WEGA-Mixer это дозатор удобрений, который выполн
   * [Arduino IDE](#arduino)
   * [Additional Boards Manager URLs](#boards_manager)
   * [Установка платы ESP8266](#esp_board_install)
-  * [Установка библиотек](#libraries_install)
   * [Visual Studio Code configuration](#vscode)
   * [Проверка правильности выбранных настроек](#config-check)
   * [Проверка ESP и простой веб сервера](#esp-check)
@@ -69,7 +68,7 @@ WEGA-Mixer это дозатор удобрений, который выполн
 #### Arduino IDE
 [Install Arduino IDE](https://www.arduino.cc/en/software)
 
-Запускаем Arduino IDE, прописываем путь к `Additional Boards Manager URLs` для нашей ESP, устанавливаем нашу плату(board) и устанавливаем все необходимые библиотеки
+Запускаем Arduino IDE, прописываем путь к `Additional Boards Manager URLs` для нашей ESP, устанавливаем нашу плату(board)
 
 <a name="boards_manager"></a>
 **Additional Boards Manager URLs**
@@ -96,20 +95,6 @@ Tools -> Board -> Board managers
 <a href="images/esp_install.png"><img src="images/esp_install.png" width="250"></a>
 
 <a name="libraries_install"></a>
-**Установка библиотек**
-
-Tools -> Manage libraries -> search libraries
-
-- LiquidCrystal_I2C.h
-- Adafruit_MCP23017.h
-- HX711.h
-
-
-Еще один вариант, это загрузить/импортировать библиотеки из папки `libraries`, которые включены в этот репозиторий
-
-Открываем `Arduino IDE` и импортируем необходимые библиотеку из папки `libraries`
-
-<a href="images/add_libraries.png"><img src="images/add_libraries.png" width="250"></a>
 
 Изначальное конфигурирование Arduino IDE закончено
 
