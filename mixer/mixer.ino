@@ -64,7 +64,7 @@ ESP8266WebServer server(80);
 
 
 #include <Wire.h>
-#include "Adafruit_MCP23017.h"
+#include "src/Adafruit_MCP23017_Arduino_Library/Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp;
 
 // Pump #1
@@ -93,10 +93,10 @@ Adafruit_MCP23017 mcp;
 #define pump8r b7
 
 
-#include <LiquidCrystal_I2C.h>
+#include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
 
-#include "HX711.h"
+#include "src/HX711_Arduino_Library/src/HX711.h"
 const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
