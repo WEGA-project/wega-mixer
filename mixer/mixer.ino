@@ -14,38 +14,40 @@ const char* password = "YOUR_WIFI_PASSWORD";
 // B0=8 .. B7=15
 // That means if you have A0 == 0 B0 == 8 (this is how it's on the board B0/A0 == 8/0)
 // one more example B3/A3 == 11/3
-// A0
-int pmp1 = 0;
-// B0
-int pmp1r = 8;
-// A1
-int pmp2 = 1;
-// B1
-int pmp2r = 9;
-// A2
-int pmp3 = 2;
-// B2
-int pmp3r = 10;
-// A3
-int pmp4 = 3;
-// B3
-int pmp4r = 11;
-// A4
-int pmp5 = 4;
-// B4
-int pmp5r = 12;
-// A5
-int pmp6 = 5;
-// B5
-int pmp6r = 13;
-// A6
-int pmp7 = 6;
-// B6
-int pmp7r = 14;
-// A7
-int pmp8 = 7;
-// B7
-int pmp8r = 15;
+
+// Pump #1
+int a0 = 0;
+int b0 = 8;
+
+// Pump #2
+int a1 = 1;
+int b1 = 9;
+
+// Pump #3
+int a2 = 2;
+int b2 = 10;
+
+// Pump #4
+int a3 = 3;
+int b3 = 11;
+
+// Pump #5
+int a4 = 4;
+int b4 = 12;
+
+// Pump #6
+int a5 = 5;
+int b5 = 13;
+
+// Pump #7
+int a6 = 6;
+int b6 = 14;
+
+// Pump #8
+int a7 = 7;
+int b7 = 14;
+
+
 
 // main code - don't change if you don't know what you are doing
 ////////////////////////////////////////////////////////////////
@@ -62,39 +64,39 @@ ESP8266WebServer server(80);
 
 
 #include <Wire.h>
-#include "Adafruit_MCP23017.h"
+#include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp;
 
-#define pump1 pmp1
-#define pump1r pmp1r
- 
-#define pump2 pmp2
-#define pump2r pmp2r
+// Pump #1
+#define pump1 a0
+#define pump1r b0
+// Pump #2
+#define pump2 a1
+#define pump2r b1
+// Pump #3
+#define pump3 a2
+#define pump3r b2
+// Pump #4
+#define pump4 a3
+#define pump4r b3
+// Pump #5
+#define pump5 a4
+#define pump5r b4
+// Pump #6
+#define pump6 a5
+#define pump6r b5
+// Pump #7
+#define pump7 a6
+#define pump7r b6
+// Pump #8
+#define pump8 a7
+#define pump8r b7
 
-#define pump3 pmp3
-#define pump3r pmp3r
- 
-#define pump4 pmp4
-#define pump4r pmp4r
 
-#define pump5 pmp5
-#define pump5r pmp5r
- 
-#define pump6 pmp6
-#define pump6r pmp6r
- 
-#define pump7 pmp7
-#define pump7r pmp7r
-
-#define pump8 pmp8
-#define pump8r pmp8r
-
-
-
-#include <LiquidCrystal_I2C.h>
+#include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
 
-#include "HX711.h"
+#include "src/HX711/src/HX711.h"
 const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
@@ -228,18 +230,18 @@ float v8=server.arg("p8").toFloat();
   server.send(200, "text/html", message);
 // A (1-3)
 scale.set_scale(scale_calibration); //A side
-  p1=pumping(v1, pump1,pump1r, "1:Ca", 5000);
-  p2=pumping(v2, pump2,pump2r, "2:KN", 5000);
-  p3=pumping(v3, pump3,pump3r, "3:NH", 7000);
+  p1=pumping(v1, pump1,pump1r, "1:Ca", 4000);
+  p2=pumping(v2, pump2,pump2r, "2:KN", 4000);
+  p3=pumping(v3, pump3,pump3r, "3:NH", 3500);
 
  
 // B (4-8)
 scale.set_scale(1738.f); //B side  
-  p4=pumping(v4, pump4,pump4r, "4:Mg", 5000);
-  p5=pumping(v5, pump5,pump5r, "5:KP", 5000);
-  p6=pumping(v6, pump6,pump6r, "6:KS", 5000);
-  p7=pumping(v7, pump7,pump7r, "7:Mk", 5000);
-  p8=pumping(v8, pump8,pump8r, "8:B", 5000); 
+  p4=pumping(v4, pump4,pump4r, "4:Mg", 4000);
+  p5=pumping(v5, pump5,pump5r, "5:KP", 4000);
+  p6=pumping(v6, pump6,pump6r, "6:KS", 4000);
+  p7=pumping(v7, pump7,pump7r, "7:Mk", 4000);
+  p8=pumping(v8, pump8,pump8r, "8:B", 4000); 
 
 WiFiClient client;
 HTTPClient http;
