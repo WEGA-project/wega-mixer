@@ -15,6 +15,9 @@ WEGA-Mixer это дозатор удобрений, который выполн
 * [Что потребуется купить(ардуино, драйвера, АЦП ...)](#what_to_buy)
 * [Установка софта](#install)
   * [Arduino IDE](#arduino)
+  * [Additional Boards Manager URLs](#boards_manager)
+  * [Установка платы ESP8266](#esp_board_install)
+  * [Установка библиотек](#libraries_install)
   * [Visual Studio Code configuration](#vscode)
   * [Проверка правильности выбранных настроек](#config-check)
   * [Проверка ESP и простой веб сервера](#esp-check)
@@ -67,6 +70,7 @@ WEGA-Mixer это дозатор удобрений, который выполн
 
 Запускаем Arduino IDE, прописываем путь к `Additional Boards Manager URLs` для нашей ESP, устанавливаем нашу плату(board) и устанавливаем все необходимые библиотеки
 
+<a name="boards_manager"></a>
 **Additional Boards Manager URLs**
 
 File -> Preferences
@@ -79,6 +83,7 @@ File -> Preferences
 
 <a href="images/esp_json.png"><img src="images/esp_json.png" width="250"></a>
 
+<a name="esp_board_install"></a>
 **Установка платы ESP8266**
 
 Tools -> Board -> Board managers
@@ -89,7 +94,7 @@ Tools -> Board -> Board managers
 
 <a href="images/esp_install.png"><img src="images/esp_install.png" width="250"></a>
 
-
+<a name="libraries_install"></a>
 **Установка библиотек**
 
 Tools -> Manage libraries -> search libraries
