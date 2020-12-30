@@ -77,7 +77,7 @@ File -> Preferences
 
 <a href="images/prefs.png"><img src="images/prefs.png" width="250"></a>
 
-И вставляем ссылку на конфиг и нажимаем OK.
+Вставляем ссылку на конфиг и нажимаем OK.
 
 `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
 
@@ -110,7 +110,10 @@ Tools -> Manage libraries -> search libraries
 
 <a href="images/add_libraries.png"><img src="images/add_libraries.png" width="250"></a>
 
-Вы можете пропустить этот шаг если вы собираетесь использовать vscode IDE как основной
+Изначальное конфигурирование Arduino IDE закончено
+
+
+Вы можете пропустить следующий шаг если вы собираетесь использовать vscode как основной IDE
 
 Выбираем правильную плату ESP
 
