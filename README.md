@@ -153,7 +153,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 Здесь находится [диаграмма](scheme)
 
 <a name="mixer"></a>
-### Mixer(Dosator)
+### Mixer
 Последняя версия [миксера](mixer)
 
 - Открываем файл прошивки из папки `mixer/mixer.ino`
