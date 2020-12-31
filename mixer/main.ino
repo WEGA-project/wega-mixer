@@ -75,7 +75,7 @@ void setup() {
 
 scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 //scale.set_scale(1738.f); //B side
-scale.set_scale(scale_calibration); //A side
+scale.set_scale(scale_calibration_A); //A side
    lcd.setCursor(10, 0);
   lcd.print("Start"); 
 scale.power_up();
@@ -175,19 +175,19 @@ float v8=server.arg("p8").toFloat();
           
   server.send(200, "text/html", message);
 // A (1-3)
-scale.set_scale(scale_calibration); //A side
-  p1=pumping(v1, pump1,pump1r, "1:Ca", 4000);
-  p2=pumping(v2, pump2,pump2r, "2:KN", 4000);
-  p3=pumping(v3, pump3,pump3r, "3:NH", 3500);
+scale.set_scale(scale_calibration_A); //A side
+  p1=pumping(v1, pump1,pump1r, pump1n, pump1p);
+  p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
+  p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
 
  
 // B (4-8)
-scale.set_scale(1738.f); //B side  
-  p4=pumping(v4, pump4,pump4r, "4:Mg", 4000);
-  p5=pumping(v5, pump5,pump5r, "5:KP", 4000);
-  p6=pumping(v6, pump6,pump6r, "6:KS", 4000);
-  p7=pumping(v7, pump7,pump7r, "7:Mk", 4000);
-  p8=pumping(v8, pump8,pump8r, "8:B", 4000); 
+scale.set_scale(scale_calibration_B); //B side  
+  p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
+  p5=pumping(v5, pump5,pump5r, pump5n, pump5p);
+  p6=pumping(v6, pump6,pump6r, pump6n, pump6p);
+  p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
+  p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
 
 WiFiClient client;
 HTTPClient http;
