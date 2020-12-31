@@ -6,7 +6,7 @@
 const char* ssid = "YOUR_WIFI_NETWORK_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
 
-// scale_calibration
+// scale_calibration, side A and B
 float scale_calibration_A = 2030;
 float scale_calibration_B = 2030;
 

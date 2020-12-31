@@ -214,12 +214,7 @@ httpstr +=  "&v8=" + fFTS(v8,3);
 http.begin(client, httpstr);
 http.GET();
 http.end();
-
-
 }
-
-
-
 
 
 void loop() {
@@ -237,25 +232,28 @@ void loop() {
   lcd.print("Ready  "); 
 }
 
-// Функция преобразования чисел с плавающей запятой в текст  
+// Функция преобразования чисел с плавающей запятой в текст
+// Function: convert float numbers to string
 String fFTS(float x, byte precision) {
   char tmp[50];
   dtostrf(x, 0, precision, tmp);
   return String(tmp);
 }
 
-//функция фильтрации Кальмана 1
+// Функция фильтрации Кальмана 1
+// Function: Kalman filter 
 float fl1(float val) { 
   Pc1 = P1 + Pr1;
   G1 = Pc1/(Pc1 + Kl1);
   P1 = (1-G1)*Pc1;
   Xp1 = Xe1;
   Zp1 = Xp1;
-  Xe1 = G1*(val-Zp1)+Xp1; // "фильтрованное" значение
+  Xe1 = G1*(val-Zp1)+Xp1; // "фильтрованное" значение - Filtered value
   return(Xe1);
 }
-// Функции помп
 
+// Функции помп
+// Pump function
 float PumpStart(int npump,int npumpr) {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
@@ -272,12 +270,14 @@ float PumpReverse(int npump,int npumpr) {
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
   }
   
-//Функция налива
+// Функция налива
+// Function: pour solution
 float pumping(float wt, int npump,int npumpr, String nm, int preload) {
 
 
 if (wt != 0 and wt < 400){
-  //Продувка
+  // Продувка
+  // Mix the solution
   lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
 PumpReverse(npump,npumpr);
 delay(30000);
