@@ -2,7 +2,6 @@
 // User variables //
 ////////////////////
 
-
 // WiFi network configuration
 const char* ssid = "YOUR_WIFI_NETWORK_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
@@ -10,6 +9,9 @@ const char* password = "YOUR_WIFI_PASSWORD";
 // scale_calibration
 float scale_calibration_A = 2030;
 float scale_calibration_B = 2030;
+
+// Setting WEGA-API
+#define WegaApiUrl "http://192.168.237.107/remote/mixerdb.php"
 
 // Pump #1
 #define pump1  A0        // Port 1

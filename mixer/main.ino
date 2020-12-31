@@ -191,8 +191,8 @@ scale.set_scale(scale_calibration_B); //B side
 
 WiFiClient client;
 HTTPClient http;
-String httpstr="http://192.168.237.107/remote/mixerdb.php?";
-httpstr +=  "p1=" + fFTS(p1,3);
+String httpstr=WegaApiUrl;
+httpstr +=  "?p1=" + fFTS(p1,3);
 httpstr +=  "&p2=" + fFTS(p2,3);
 httpstr +=  "&p3=" + fFTS(p3,3);
 httpstr +=  "&p4=" + fFTS(p4,3);
