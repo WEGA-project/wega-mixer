@@ -6,7 +6,7 @@
 // In order to ignore changes in this file you need to run  //
 // git update-index --assume-unchanged mixer/mixer.ino      //
 // -------------------------------------------------------- //
-// To start to trach changes in this file again run         //
+// To start tracking changes in this file again run         //
 // git update-index --no-assume-unchanged mixer/mixer.ino   //
 //////////////////////////////////////////////////////////////
 
