@@ -1,4 +1,5 @@
 #!/bin/bash
+git update-index --assume-unchanged mixer/mixer.ino
 git add *
 git commit -a
 git pull
