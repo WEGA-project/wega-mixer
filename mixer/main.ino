@@ -16,32 +16,28 @@ ESP8266WebServer server(80);
 #include <Wire.h>
 #include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp;
-
-// Pump #1
-#define pump1 a0
-#define pump1r b0
-// Pump #2
-#define pump2 a1
-#define pump2r b1
-// Pump #3
-#define pump3 a2
-#define pump3r b2
-// Pump #4
-#define pump4 a3
-#define pump4r b3
-// Pump #5
-#define pump5 a4
-#define pump5r b4
-// Pump #6
-#define pump6 a5
-#define pump6r b5
-// Pump #7
-#define pump7 a6
-#define pump7r b6
-// Pump #8
-#define pump8 a7
-#define pump8r b7
-
+// Assign ports names
+// Here is the naming convention:
+// A0=0 .. A7=7
+// B0=8 .. B7=15
+// That means if you have A0 == 0 B0 == 8 (this is how it's on the board B0/A0 == 8/0)
+// one more example B3/A3 == 11/3
+#define A0 0
+#define A1 1
+#define A2 2
+#define A3 3
+#define A4 4
+#define A5 5
+#define A6 6
+#define A7 7
+#define B0 8
+#define B1 9
+#define B2 10
+#define B3 11
+#define B4 12
+#define B5 13
+#define B6 14
+#define B7 15
 
 #include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
