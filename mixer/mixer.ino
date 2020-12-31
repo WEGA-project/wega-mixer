@@ -2,6 +2,14 @@
 // User variables //
 ////////////////////
 
+//////////////////////////////////////////////////////////////
+// In order to ignore changes in this file you need to run  //
+// git update-index --assume-unchanged mixer/mixer.ino      //
+// -------------------------------------------------------- //
+// To start to trach changes in this file again run         //
+// git update-index --no-assume-unchanged mixer/mixer.ino   //
+//////////////////////////////////////////////////////////////
+
 // WiFi network configuration
 const char* ssid = "YOUR_WIFI_NETWORK_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";

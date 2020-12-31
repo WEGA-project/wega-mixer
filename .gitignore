@@ -7,6 +7,3 @@
 
 # Local History for Visual Studio Code
 .history/
-
-# Ignore user config changes in mixer.ino
-mixer/mixer.ino
