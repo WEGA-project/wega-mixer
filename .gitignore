@@ -9,4 +9,4 @@
 .history/
 
 # Ignore user config changes in mixer.ino
-mixer/mixer.ino
+**/mixer/mixer.ino
