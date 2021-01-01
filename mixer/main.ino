@@ -1,6 +1,8 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
+#define FW_version  "1.01"
+
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -50,7 +52,7 @@ HX711 scale;
 //Коэффициенты фильтрации Кальмана
 float Kl1= 0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
-float p1,p2,p3,p4,p5,p6,p7,p8;
+float p1,p2,p3,p4,p5,p6,p7,p8,fscl;
 
 void setup() {
   WiFi.mode(WIFI_STA);
@@ -60,6 +62,7 @@ void setup() {
   MDNS.addService("http", "tcp", 80);
   server.on("/", handleRoot);
   server.on("/test", test);
+  server.on("/scales", scales);
   server.on("/st", st);
   server.begin();
   ArduinoOTA.onStart([]() {});
@@ -76,13 +79,16 @@ void setup() {
 scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 //scale.set_scale(1738.f); //B side
 scale.set_scale(scale_calibration_A); //A side
-   lcd.setCursor(10, 0);
-  lcd.print("Start"); 
+   lcd.setCursor(0, 0);
+  lcd.print("Start FW: ");
+  lcd.print(FW_version); 
 scale.power_up();
+  
   server.handleClient();
 
 delay (3000);
 scale.tare(255);
+lcd.clear();
 }
 
 
@@ -117,7 +123,7 @@ message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "
 message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/>B";
 
 message += "<p><input type='submit' value='Start'/></p>";
-
+message += "<br><a href=scales>SCALES</a>";
 
 
           
@@ -127,7 +133,15 @@ message += "<p><input type='submit' value='Start'/></p>";
    }
 
 
+void scales (){
+ String message = "<meta http-equiv='refresh' content='5'>";
+        message += "<H1>";
+        message += fFTS(fscl,2);
+        message += "</H1>";
+    
+  server.send(200, "text/html", message);
 
+  }
 
 
 void test (){
@@ -223,7 +237,7 @@ void loop() {
   
  lcd.setCursor(0, 1);
  float scl=scale.get_units(16);
- float fscl=fl1(scl);
+ fscl=fl1(scl);
  if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;} 
  lcd.print(fscl,2);
  lcd.print("         ");
