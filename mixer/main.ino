@@ -271,6 +271,7 @@ scale.set_scale(scale_calibration_B); //B side
   p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
   p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
 
+  wstatus="Ready";
 
 WiFiClient client;
 HTTPClient http;
@@ -297,6 +298,9 @@ httpstr +=  "&v8=" + fFTS(v8,3);
 http.begin(client, httpstr);
 http.GET();
 http.end();
+
+delay (10000);
+lcd.clear();
 }
 
 
@@ -447,7 +451,7 @@ PumpStop(npump,npumpr);
 PumpReverse(npump,npumpr);
    delay (preload*2);
 PumpStop(npump,npumpr);
-    wstatus="Ready";
+    
     return value;
   }
 else {
