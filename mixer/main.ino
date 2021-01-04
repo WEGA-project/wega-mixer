@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.02"
+#define FW_version  "1.03"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -154,7 +154,11 @@ String message = "Calibrate (calculate scale_calibration value)";
         message += "<H1>Current RAW=";
         message += fFTS(raw,0);
         message += "</H1>";
-        message += "<br>";  
+        message += "<H2>Current Value on display=";
+        message += fFTS(fscl,2);
+        message += " g</H2>";
+        message += "<br>Current Scale calibration A = " + fFTS(scale_calibration_A,4);
+        message += "<br>Current Scale calibration B = " + fFTS(scale_calibration_B,4);  
 message += "<form action='' method='get'>";
 message += "<p>RAW on Zero<input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
 message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
@@ -164,10 +168,24 @@ message += "<p><input type='submit' value='Submit'/></p>";
 float x1=server.arg("x1").toFloat();
 float x2=server.arg("x2").toFloat();
 float s2=server.arg("s2").toFloat();
+float k,y,s;
+
 if (s2 != 0) 
  {
-  float k=-(x1-x2)/s2;
-  message += "<br> scale_calibration = "+fFTS(k,4);
+  k=-(x1-x2)/s2;
+  message += "<br> scale_calibration = <b>"+fFTS(k,4)+"</b> copy and past to sketch";
+ }
+
+if (x1 > 0 and x2 > 0) 
+ {
+  y=-(s2*x1)/(x1-x2);
+  message += "<br>Calculate preloaded weight = "+fFTS(y,2) + " g";
+ }
+ 
+if (k != 0)
+ { 
+  s=raw*(1/k)-y;
+  message += "<br>Calculate weight = "+fFTS(s,2) + " g";
  }
  
   server.send(200, "text/html", message);  
@@ -232,6 +250,7 @@ scale.set_scale(scale_calibration_B); //B side
   p6=pumping(v6, pump6,pump6r, pump6n, pump6p);
   p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
   p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
+
 
 WiFiClient client;
 HTTPClient http;
@@ -324,7 +343,7 @@ if (wt != 0 and wt < 400){
   // Mix the solution
   lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
 PumpReverse(npump,npumpr);
-delay(30000);
+delay(preload);
 
 lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);
               lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
@@ -388,7 +407,7 @@ PumpStop(npump,npumpr);
     lcd.print("%)      ");
       server.handleClient();
 PumpReverse(npump,npumpr);
-   delay (10000);
+   delay (preload*2);
 PumpStop(npump,npumpr);
     return value;
   }
