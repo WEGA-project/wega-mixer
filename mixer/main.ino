@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.01"
+#define FW_version  "1.02"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -64,6 +64,7 @@ void setup() {
   server.on("/test", test);
   server.on("/scales", scales);
   server.on("/st", st);
+  server.on("/calibrate", calibrate);
   server.begin();
   ArduinoOTA.onStart([]() {});
   ArduinoOTA.onEnd([]() {});
@@ -124,7 +125,7 @@ message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "
 
 message += "<p><input type='submit' value='Start'/></p>";
 message += "<br><a href=scales>SCALES</a>";
-
+message += "<br><a href=calibrate>Calibrate scales</a>";
 
           
   server.send(200, "text/html", message);
@@ -134,13 +135,42 @@ message += "<br><a href=scales>SCALES</a>";
 
 
 void scales (){
+ float raw = scale.read_average(255);
  String message = "<meta http-equiv='refresh' content='5'>";
         message += "<H1>";
         message += fFTS(fscl,2);
         message += "</H1>";
+        message += "<br>RAW=";
+        message += fFTS(raw,0);
     
   server.send(200, "text/html", message);
 
+  }
+
+
+void calibrate (){
+float raw = scale.read_average(255);
+String message = "Calibrate (calculate scale_calibration value)";
+        message += "<H1>Current RAW=";
+        message += fFTS(raw,0);
+        message += "</H1>";
+        message += "<br>";  
+message += "<form action='' method='get'>";
+message += "<p>RAW on Zero<input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
+message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
+message += "<p>Value with load (gramm)<input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
+message += "<p><input type='submit' value='Submit'/></p>";
+
+float x1=server.arg("x1").toFloat();
+float x2=server.arg("x2").toFloat();
+float s2=server.arg("s2").toFloat();
+if (s2 != 0) 
+ {
+  float k=-(x1-x2)/s2;
+  message += "<br> scale_calibration = "+fFTS(k,4);
+ }
+ 
+  server.send(200, "text/html", message);  
   }
 
 
