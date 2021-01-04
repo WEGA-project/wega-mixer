@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.03"
+#define FW_version  "1.04"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -52,7 +52,8 @@ HX711 scale;
 //Коэффициенты фильтрации Кальмана
 float Kl1= 0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
-float p1,p2,p3,p4,p5,p6,p7,p8,fscl;
+float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
+String wstatus,wpomp;
 
 void setup() {
   WiFi.mode(WIFI_STA);
@@ -84,7 +85,9 @@ scale.set_scale(scale_calibration_A); //A side
   lcd.print("Start FW: ");
   lcd.print(FW_version); 
 scale.power_up();
-  
+
+wstatus="Ready";
+
   server.handleClient();
 
 delay (3000);
@@ -94,39 +97,44 @@ lcd.clear();
 
 
 void handleRoot() {
- String message = "Plan<br>P1:";
-       message += fFTS(p1,3);
-       message += "<br>P2:";
-       message += fFTS(p2,3);
-       message += "<br>P3:";
-       message += fFTS(p3,3);
-       message += "<br>P4:"; 
-       message += fFTS(p4,3);
-       message += "<br>P5:";
-       message += fFTS(p5,3);
-       message += "<br>P6:";
-       message += fFTS(p6,3);
-       message += "<br>P7:";    
-       message += fFTS(p7,3);
-       message += "<br>P8:";
-       message += fFTS(p8,3);
+ String message = "Status: " + wstatus + "<br>";
+ if (wstatus != "Ready" )
+  {message = " Work pomp: " + wpomp + "<br>Current vol: " + fFTS(curvol,2) + "g";}
 
-       message += "<br><br><a href=""plan1"">PLAN1 START</a>"; 
+float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
+float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
+float p3f=server.arg("p3").toFloat(), p3c=(p3-p3f)/p3f*100;
+float p4f=server.arg("p4").toFloat(), p4c=(p4-p4f)/p4f*100;
+float p5f=server.arg("p5").toFloat(), p5c=(p5-p5f)/p5f*100;
+float p6f=server.arg("p6").toFloat(), p6c=(p6-p6f)/p6f*100;
+float p7f=server.arg("p7").toFloat(), p7c=(p7-p7f)/p7f*100;
+float p8f=server.arg("p8").toFloat(), p8c=(p8-p8f)/p8f*100;
+
+String prc1,prc2,prc3,prc4,prc5,prc6,prc7,prc8;
+if ( p1f != NULL and p1f != 0){ prc1="="+fFTS(p1,2)+" "+fFTS(p1c,2)+"%";}else{prc1="";}
+if ( p2f != NULL and p2f != 0){ prc2="="+fFTS(p2,2)+" "+fFTS(p2c,2)+"%";}else{prc2="";}
+if ( p3f != NULL and p3f != 0){ prc3="="+fFTS(p3,2)+" "+fFTS(p3c,2)+"%";}else{prc3="";}
+if ( p4f != NULL and p4f != 0){ prc4="="+fFTS(p4,2)+" "+fFTS(p4c,2)+"%";}else{prc4="";}
+if ( p5f != NULL and p5f != 0){ prc5="="+fFTS(p5,2)+" "+fFTS(p5c,2)+"%";}else{prc5="";}
+if ( p6f != NULL and p6f != 0){ prc6="="+fFTS(p6,2)+" "+fFTS(p6c,2)+"%";}else{prc6="";}
+if ( p7f != NULL and p7f != 0){ prc7="="+fFTS(p7,2)+" "+fFTS(p7c,2)+"%";}else{prc7="";}
+if ( p8f != NULL and p8f != 0){ prc8="="+fFTS(p8,2)+" "+fFTS(p8c,2)+"%";}else{prc8="";}
 
 message += "<form action='st' method='get'>";
-message += "<p>P1 = <input type='text' name='p1' value='" + server.arg("p1") + "'/>Ca(NO3)2</p>";
-message += "<p>P2 = <input type='text' name='p2' value='" + server.arg("p2") + "'/>KNO3</p>";
-message += "<p>P3 = <input type='text' name='p3' value='" + server.arg("p3") + "'/>NH4NO3</p>";
-message += "<p>P4 = <input type='text' name='p4' value='" + server.arg("p4") + "'/>MgSO4</p>";
-message += "<p>P5 = <input type='text' name='p5' value='" + server.arg("p5") + "'/>KH2PO4</p>";
-message += "<p>P6 = <input type='text' name='p6' value='" + server.arg("p6") + "'/>K2SO4</p>";
-message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "'/>Micro 1000:1";
-message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/>B";
+message += "<p>P1 = <input type='text' name='p1' value='" + server.arg("p1") + "'/> "+pump1n +prc1+"</p>";
+message += "<p>P2 = <input type='text' name='p2' value='" + server.arg("p2") + "'/> "+pump2n +prc2+"</p>";
+message += "<p>P3 = <input type='text' name='p3' value='" + server.arg("p3") + "'/> "+pump3n +prc3+"</p>";
+message += "<p>P4 = <input type='text' name='p4' value='" + server.arg("p4") + "'/> "+pump4n +prc4+"</p>";
+message += "<p>P5 = <input type='text' name='p5' value='" + server.arg("p5") + "'/> "+pump5n +prc5+"</p>";
+message += "<p>P6 = <input type='text' name='p6' value='" + server.arg("p6") + "'/> "+pump6n +prc6+"</p>";
+message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "'/> "+pump7n +prc7+"</p>";
+message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
 
-message += "<p><input type='submit' value='Start'/></p>";
-message += "<br><a href=scales>SCALES</a>";
-message += "<br><a href=calibrate>Calibrate scales</a>";
-
+if (wstatus == "Ready" )  
+ { message += "<p><input type='submit' value='Start'/></p></form>";
+   message += "<br><a href=scales>SCALES</a>";
+   message += "<br><a href=calibrate>Calibrate scales</a>";
+ }
           
   server.send(200, "text/html", message);
  scale.tare(255); 
@@ -182,7 +190,7 @@ if (x1 > 0 and x2 > 0)
   message += "<br>Calculate preloaded weight = "+fFTS(y,2) + " g";
  }
  
-if (k != 0)
+if (s2 != 0)
  { 
   s=raw*(1/k)-y;
   message += "<br>Calculate weight = "+fFTS(s,2) + " g";
@@ -234,6 +242,18 @@ float v8=server.arg("p8").toFloat();
        message += fFTS(v7,2);
        message += "<br>P8:";
        message += fFTS(v8,2);
+
+
+       message += "<meta http-equiv='refresh' content=0;URL=../";
+       message += "?p1="+server.arg("p1");
+       message += "&p2="+server.arg("p2");
+       message += "&p3="+server.arg("p3");
+       message += "&p4="+server.arg("p4");
+       message += "&p5="+server.arg("p5");
+       message += "&p6="+server.arg("p6");
+       message += "&p7="+server.arg("p7");
+       message += "&p8="+server.arg("p8");
+       message += ">";
           
   server.send(200, "text/html", message);
 // A (1-3)
@@ -336,7 +356,10 @@ float PumpReverse(int npump,int npumpr) {
 // Функция налива
 // Function: pour solution
 float pumping(float wt, int npump,int npumpr, String nm, int preload) {
+wstatus="Worked...";
+wpomp=nm;
 
+  server.handleClient();
 
 if (wt != 0 and wt < 400){
   // Продувка
@@ -351,7 +374,11 @@ lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);
   mcp.begin();
   
 PumpStart(npump,npumpr);
+
 delay(preload);
+
+      server.handleClient();
+      ArduinoOTA.handle();
 PumpStop(npump,npumpr);
 
 
@@ -360,8 +387,12 @@ PumpStop(npump,npumpr);
 
   lcd.setCursor(10, 0);
   lcd.print("RUNING");
+
+
   float value=scale.get_units(64);
   float pvalue,sk;
+
+  
   while ( value < wt-0.01 ) {
     lcd.setCursor(0, 1);
     lcd.print(value,2);
@@ -374,6 +405,8 @@ PumpStop(npump,npumpr);
     //mcp.digitalWrite(npump, HIGH);
     PumpStart(npump,npumpr);
     if (value < (wt-1.5)) { 
+    
+      
       if (wt - value > 20) {delay (10000);}else{delay (2000);}
       pvalue=value;
       sk=80;
@@ -382,38 +415,46 @@ PumpStop(npump,npumpr);
           lcd.setCursor(10, 0);
           lcd.print("PCIS ");
 
+
+      
         if (value-pvalue < 0.01) {if (sk<80){sk=sk+2;}}
         if (value-pvalue > 0.01) {if (sk>2) {sk=sk-2;}}
         if (value-pvalue > 0.1 ) {sk=0;}
 
         pvalue=value;
         delay (sk);
-              
+  
+      
         }
     //mcp.digitalWrite(npump, LOW);
     PumpStop(npump,npumpr);
+       //server.handleClient();
+      //ArduinoOTA.handle(); 
     delay (100);
 
     value=scale.get_units(254);
     Xe1=value;
+    curvol=value;
 
     }
-  //mcp.digitalWrite(npump, LOW);
    PumpStop(npump,npumpr);
     lcd.setCursor(0, 1);
     lcd.print(value,2);
     lcd.print(" (");
     lcd.print(100-(wt-value)/wt*100,2);
     lcd.print("%)      ");
-      server.handleClient();
+      //server.handleClient();
 PumpReverse(npump,npumpr);
    delay (preload*2);
 PumpStop(npump,npumpr);
+    wstatus="Ready";
     return value;
   }
 else {
   lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
   lcd.setCursor(10, 0);
   lcd.print("SKIP..   ");
-  delay (1000);}
+  delay (1000);
+  server.handleClient();
+  }
 }
