@@ -165,12 +165,12 @@ String message = "Calibrate (calculate scale_calibration value)";
         message += "<H2>Current Value on display=";
         message += fFTS(fscl,2);
         message += " g</H2>";
-        message += "<br>Current Scale calibration A = " + fFTS(scale_calibration_A,4);
-        message += "<br>Current Scale calibration B = " + fFTS(scale_calibration_B,4);  
+        message += "<br>Current scale_calibration_A = " + fFTS(scale_calibration_A,4);
+        message += "<br>Current scale_calibration_B = " + fFTS(scale_calibration_B,4);  
 message += "<form action='' method='get'>";
-message += "<p>RAW on Zero<input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
+message += "<p>RAW on Zero <input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
 message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
-message += "<p>Value with load (gramm)<input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
+message += "<p>Value with load (gramm) <input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
 message += "<p><input type='submit' value='Submit'/></p>";
 
 float x1=server.arg("x1").toFloat();
@@ -181,7 +181,7 @@ float k,y,s;
 if (s2 != 0) 
  {
   k=-(x1-x2)/s2;
-  message += "<br> scale_calibration = <b>"+fFTS(k,4)+"</b> copy and past to sketch";
+  message += "<br> scale_calibration = <b>"+fFTS(k,4)+"</b> copy and paste to your sketch";
  }
 
 if (x1 > 0 and x2 > 0) 
