@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.041"
+#define FW_version  "1.042"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -81,9 +81,11 @@ void setup() {
 scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 //scale.set_scale(1738.f); //B side
 scale.set_scale(scale_calibration_A); //A side
-   lcd.setCursor(0, 0);
+ lcd.setCursor(0, 0);
   lcd.print("Start FW: ");
-  lcd.print(FW_version); 
+  lcd.print(FW_version);
+ lcd.setCursor(0, 1); 
+  lcd.print(WiFi.localIP()); 
 scale.power_up();
 
 wstatus="Ready";
