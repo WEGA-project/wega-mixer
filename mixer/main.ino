@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.042"
+#define FW_version  "1.044"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -137,9 +137,13 @@ if (wstatus == "Ready" )
    message += "<br><a href=scales>SCALES</a>";
    message += "<br><a href=calibrate>Calibrate scales</a>";
  }
+else
+ {
+  message += "<meta http-equiv='refresh' content='10'>";
+ }
           
   server.send(200, "text/html", message);
- scale.tare(255); 
+ //scale.tare(255); 
 
    }
 
@@ -413,7 +417,7 @@ PumpStop(npump,npumpr);
     if (value < (wt-1.5)) { 
     
       
-      if (wt - value > 20) {delay (10000);}else{delay (2000);}
+      if (wt - value > 20) {delay (10000);}else{delay (1000);}
       pvalue=value;
       sk=80;
       }
@@ -434,8 +438,10 @@ PumpStop(npump,npumpr);
         }
     //mcp.digitalWrite(npump, LOW);
     PumpStop(npump,npumpr);
-       //server.handleClient();
-      //ArduinoOTA.handle(); 
+
+    server.handleClient();
+    ArduinoOTA.handle(); 
+    
     delay (100);
 
     value=scale.get_units(254);
