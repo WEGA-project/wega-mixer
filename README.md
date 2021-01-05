@@ -225,6 +225,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 <a href="images/scale_calibration_mark.png"><img src="images/scale_calibration_mark.png" width="250"></a>
 
 Теперь, все то же самое проделываем для точки B
+
 Как только вы получили значение `scale_calibration` записываем его в файл `mixer.ino` в поле `scale_calibration_B`, сохраняем файл и заливаем прошивку
 
 <a name="manual-calibration"></a>
