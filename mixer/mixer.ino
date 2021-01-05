@@ -60,7 +60,7 @@ float scale_calibration_B = 2030;
 // Pump #7
 #define pump7  A6
 #define pump7r B6
-#define pump7n "7:NK"
+#define pump7n "7:MK"
 #define pump7p 4000
 
 // Pump #8
