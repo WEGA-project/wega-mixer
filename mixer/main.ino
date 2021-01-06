@@ -447,7 +447,6 @@ PumpStop(npump,npumpr);
     value=scale.get_units(254);
     Xe1=value;
     curvol=value;
-
     }
    PumpStop(npump,npumpr);
     lcd.setCursor(0, 1);
