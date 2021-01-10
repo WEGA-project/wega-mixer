@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.045"
+#define FW_version  "1.046"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -134,8 +134,9 @@ message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "
 message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
 
 if (wstatus == "Ready" )  
- { message += "<p><input type='submit' value='Start'/> <input type='button' onclick=\"window.location.href = 'scales';\" value='SCALES'/> ";
-   message += "<input type='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
+ { message += "<p><input type='submit' style='width:90px;height:20px;font-size:0.8em;' value='Start'/>  ";
+   message += "<input type='button' style='width:90px;height:20px;font-size:0.8em;' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
+   message += "<input type='button' style='width:90px;height:20px;font-size:0.8em;' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
    message += "</p></form>";
  }
 else
@@ -151,13 +152,12 @@ else
 void scales (){
  float raw = scale.read_average(255);
  String message = "<meta http-equiv='refresh' content='5'>";
-        message += "<H1>";
-        message += fFTS(fscl,2);
-        message += "</H1>";
-        message += "<br>RAW=";
-        message += fFTS(raw,0);
-        message += "<br><br><input type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>";
-    
+        message += "<h3>Current weight = " + fFTS(fscl,2) + "</h3>";
+        message += "RAW = " + fFTS(raw,0);
+        message += "<p><input style='width:90px;height:20px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+        message += "<input style='width:90px;height:20px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+        message += "</p>";
+
   server.send(200, "text/html", message);
 
   }
@@ -174,26 +174,22 @@ String message = "<script language='JavaScript' type='text/javascript'>setTimeou
 void calibrate (){
 float raw = scale.read_average(255);
 String message = "Calibrate (calculate scale_calibration value)";
-        message += "<H1>Current RAW=";
-        message += fFTS(raw,0);
-        message += "</H1>";
+        message += "<h1>Current RAW = " + fFTS(raw,0) + "</h1>";
         scale.set_scale(scale_calibration_A);
-        message += "<H2>Current Value for point A=";
-        message += fFTS(scale.get_units(128),2);
-        message += " g</H2>";
-
+        message += "<br><h2>Current Value for point A = " + fFTS(scale.get_units(128),2) + "g</h2>";
         scale.set_scale(scale_calibration_B);
-        message += "<H2>Current Value for point B=";
-        message += fFTS(scale.get_units(128),2);
-        message += " g</H2>";
-        
+        message += "<br><h2>Current Value for point B = " + fFTS(scale.get_units(128),2) + "g</h2>";
         message += "<br>Current scale_calibration_A = " + fFTS(scale_calibration_A,4);
         message += "<br>Current scale_calibration_B = " + fFTS(scale_calibration_B,4);  
 message += "<form action='' method='get'>";
 message += "<p>RAW on Zero <input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
 message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
 message += "<p>Value with load (gramm) <input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
-message += "<p><input type='submit' value='Submit'/>  <input type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  <button onClick='window.location.reload();'>Refresh</button></p>";
+message += "<p><input style='width:90px;height:20px;font-size:0.8em;' type='submit' value='Submit'/>  ";
+message += "<input style='width:90px;height:20px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+message += "<button style='width:90px;height:20px;font-size:0.8em;' onClick='window.location.reload();'>Refresh</button>  ";
+message += "<input style='width:90px;height:20px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+message += "</p>";
 
 float x1=server.arg("x1").toFloat();
 float x2=server.arg("x2").toFloat();
@@ -209,13 +205,13 @@ if (s2 != 0)
 if (x1 > 0 and x2 > 0) 
  {
   y=-(s2*x1)/(x1-x2);
-  message += "<br>Calculate preloaded weight = "+fFTS(y,2) + " g";
+  message += "<br>Calculate preloaded weight = "+fFTS(y,2) + "g";
  }
  
 if (s2 != 0)
  { 
   s=raw*(1/k)-y;
-  message += "<br>Calculate weight = "+fFTS(s,2) + " g";
+  message += "<br>Calculate weight = "+fFTS(s,2) + "g";
  }
 
   server.send(200, "text/html", message);  
