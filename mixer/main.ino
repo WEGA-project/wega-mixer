@@ -134,9 +134,9 @@ message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "
 message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
 
 if (wstatus == "Ready" )  
- { message += "<p><input type='submit' style='width:90px;height:26px;font-size:0.8em;' value='Start'/>  ";
-   message += "<input type='button' style='width:90px;height:26px;font-size:0.8em;' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
-   message += "<input type='button' style='width:90px;height:26px;font-size:0.8em;' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
+ { message += "<p><input type='submit' style='width:105px;height:26px;font-size:0.8em;' value='Start'/>  ";
+   message += "<input type='button' style='width:105px;height:26px;font-size:0.8em;' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
+   message += "<input type='button' style='width:105px;height:26px;font-size:0.8em;' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
    message += "</p></form>";
  }
 else
@@ -154,8 +154,8 @@ void scales (){
  String message = "<meta http-equiv='refresh' content='5'>";
         message += "<h3>Current weight = " + fFTS(fscl,2) + "</h3>";
         message += "RAW = " + fFTS(raw,0);
-        message += "<p><input style='width:90px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
-        message += "<input style='width:90px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+        message += "<p><input style='width:105px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+        message += "<input style='width:105px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
         message += "</p>";
 
   server.send(200, "text/html", message);
@@ -185,10 +185,10 @@ message += "<form action='' method='get'>";
 message += "<p>RAW on Zero <input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
 message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
 message += "<p>Value with load (gramm) <input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
-message += "<p><input style='width:90px;height:26px;font-size:0.8em;' type='submit' value='Submit'/>  ";
-message += "<input style='width:90px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
-message += "<button style='width:90px;height:26px;font-size:0.8em;' onClick='window.location.reload();'>Refresh</button>  ";
-message += "<input style='width:90px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+message += "<p><input style='width:105px;height:26px;font-size:0.8em;' type='submit' value='Submit'/>  ";
+message += "<input style='width:105px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+message += "<button style='width:105px;height:26px;font-size:0.8em;' onClick='window.location.reload();'>Refresh</button>  ";
+message += "<input style='width:105px;height:26px;font-size:0.8em;' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
 message += "</p>";
 
 float x1=server.arg("x1").toFloat();
