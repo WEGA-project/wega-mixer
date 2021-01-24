@@ -103,6 +103,8 @@ Tools -> Board -> Board managers
 
 Изначальное конфигурирование Arduino IDE закончено
 
+*Для поддержки платы в Windows необходимо установить драйвер USB http://www.wch.cn/downloads/CH341SER_ZIP.html
+
 
 Вы можете пропустить следующий шаг если вы собираетесь использовать vscode как основной IDE
 
