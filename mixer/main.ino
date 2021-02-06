@@ -152,7 +152,7 @@ else
           
   server.send(200, "text/html", message);
 
-   }
+}
 
 
 void scales (){
