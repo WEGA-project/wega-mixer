@@ -1,6 +1,6 @@
 # Законченные варианты миксеров и примеры корпусов
 
-<a href="1.jpg"><img src="1.jpg" width="250">
+<a href="1.jpg"><img src="1.jpg" width="250"><a href="1-1.jpg"><img src="1-1.jpg" width="250">
 
 <a href="5.jpg"><img src="5.jpg" width="250"></a></a><a href="3.jpg"><img src="3.jpg" width="250"></a>
 
