@@ -66,6 +66,9 @@ void setup() {
   server.on("/scales", scales);
   server.on("/st", st);
   server.on("/calibrate", calibrate);
+  server.on("/revers_pumps", revers_pumps);
+  server.on("/revers_all_pumps", revers_all_pumps);
+  server.on("/revers_mg_pump", revers_mg_pump);
   server.on("/tare", tare);
   server.on("/style.css", css);
   server.begin();
@@ -140,9 +143,11 @@ message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "
 message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
 
 if (wstatus == "Ready" )  
- { message += "<p><input type='submit' class='button' value='Start'/>  ";
+ {
+   message += "<p><input type='submit' class='button' value='Start'/>  ";
    message += "<input type='button' class='button' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
-   message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
+   message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>  ";
+   message += "<input type='button' class='button' onclick=\"window.location.href = 'revers_pumps';\" value='Revers pumps'/>";
    message += "</p></form>";
  }
 else
@@ -157,25 +162,23 @@ else
 
 void scales (){
  float raw = scale.read_average(255);
- String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
-        message += "<meta http-equiv='refresh' content='5'>";
-        message += "<h3>Current weight = " + fFTS(fscl,2) + "</h3>";
-        message += "RAW = " + fFTS(raw,0);
-        message += "<p><input type='button' class='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
-        message += "<input type='button' class='button' onclick=\"window.location.href = '/';\" value='Home'/>";
-        message += "</p>";
+  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
+    message += "<meta http-equiv='refresh' content='5'>";
+    message += "<h3>Current weight = " + fFTS(fscl,2) + "</h3>";
+    message += "RAW = " + fFTS(raw,0);
+    message += "<p><input type='button' class='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+    message += "<input type='button' class='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+    message += "</p>";
 
   server.send(200, "text/html", message);
-
   }
 
 void tare (){
-scale.tare(255);
-String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
-       message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
+  scale.tare(255);
+  String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
+    message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
 
   server.send(200, "text/html", message);
-
   }
 
 void calibrate (){
@@ -239,7 +242,41 @@ void test (){
     lcd.home();lcd.print("Pump 8 Start");PumpStart(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Revers       ");PumpReverse(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Stop      ");delay(1000);PumpStop(pump8,pump8r);
   }
 
+void revers_pumps (){
+  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
+    message += "<h3>Pumps revers: All pumps vs MgSO4 pump</h3>";
+    message += "<p><input type='button' class='button' onclick=\"window.location.href = 'revers_all_pumps';\" value='Revers all'/>  ";
+    message += "<input type='button' class='button' onclick=\"window.location.href = 'revers_mg_pump';\" value='Revers MgSO4'/>  ";
+    message += "<input type='button' class='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+    message += "</p>";
 
+  server.send(200, "text/html", message);
+  }
+
+void revers_all_pumps (){
+  float dl=2500;
+  lcd.home();lcd.print("Pump 1 Revers       ");PumpReverse(pump1,pump1r);delay(dl);lcd.home();lcd.print("Pump 1 Stop      ");delay(1000);PumpStop(pump1,pump1r);
+  lcd.home();lcd.print("Pump 2 Revers       ");PumpReverse(pump2,pump2r);delay(dl);lcd.home();lcd.print("Pump 2 Stop      ");delay(1000);PumpStop(pump2,pump2r);
+  lcd.home();lcd.print("Pump 3 Revers       ");PumpReverse(pump3,pump3r);delay(dl);lcd.home();lcd.print("Pump 3 Stop      ");delay(1000);PumpStop(pump3,pump3r);
+  lcd.home();lcd.print("Pump 4 Revers       ");PumpReverse(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Stop      ");delay(1000);PumpStop(pump4,pump4r);
+  lcd.home();lcd.print("Pump 5 Revers       ");PumpReverse(pump5,pump5r);delay(dl);lcd.home();lcd.print("Pump 5 Stop      ");delay(1000);PumpStop(pump5,pump5r);
+  lcd.home();lcd.print("Pump 6 Revers       ");PumpReverse(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Stop      ");delay(1000);PumpStop(pump6,pump6r);
+
+  String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
+    message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
+  server.send(200, "text/html", message); 
+  }
+
+void revers_mg_pump (){
+  float dl=2500;
+  lcd.home();lcd.print("Pump 4 Revers       ");
+  PumpReverse(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Stop      ");delay(1000);PumpStop(pump4,pump4r);
+  delay(1000);
+  PumpReverse(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Stop      ");delay(1000);PumpStop(pump4,pump4r);
+  String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
+    message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
+  server.send(200, "text/html", message); 
+  }
 
 void st() {
 
