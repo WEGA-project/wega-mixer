@@ -335,7 +335,7 @@ void loop() {
   #if (KALMAN || !defined(KALMAN))
     fscl = kf.updateEstimate(scale.get_units(16));
   #else
-    fscl = readScales(128);
+    fscl = scale.get_units(128);
   #endif
   lcd.setCursor(0, 1);
   lcd.print(fscl, 2);
