@@ -14,7 +14,6 @@ ESP8266WebServer server(80);
 #include <WiFiClient.h>
 #include <ESP8266HTTPClient.h>
 
-
 #include <Wire.h>
 #include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp;
@@ -49,8 +48,8 @@ const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
 
-//Коэффициенты фильтрации Кальмана
-float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
+#include "src/SimpleKalmanFilter/src/SimpleKalmanFilter.h"
+SimpleKalmanFilter kf = SimpleKalmanFilter(0.7, 0.04, 0.9);
 
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 String wstatus,wpomp;
@@ -334,11 +333,9 @@ void loop() {
   ArduinoOTA.handle();
 
   #if (KALMAN || !defined(KALMAN))
-    float scl  = scale.get_units(16);
-    fscl = kalmanFilter(scl);
-    if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;}
+    fscl = kf.updateEstimate(scale.get_units(16));
   #else
-    fscl = scale.get_units(128);  
+    fscl = readScales(128);
   #endif
   lcd.setCursor(0, 1);
   lcd.print(fscl, 2);
@@ -354,16 +351,6 @@ String fFTS(float x, byte precision) {
   char tmp[50];
   dtostrf(x, 0, precision, tmp);
   return String(tmp);
-}
-
-float kalmanFilter(float val) { 
-  Pc1 = P1 + Pr1;
-  G1 = Pc1/(Pc1 + Kl1);
-  P1 = (1-G1)*Pc1;
-  Xp1 = Xe1;
-  Zp1 = Xp1;
-  Xe1 = G1*(val-Zp1)+Xp1; // "фильтрованное" значение - Filtered value
-  return(Xe1);
 }
 
 // Функции помп
@@ -466,7 +453,6 @@ PumpStop(npump,npumpr);
     delay (100);
 
     value=readScalesWithCheck(128);
-    Xe1=value;
     curvol=value;
     }
    PumpStop(npump,npumpr);
