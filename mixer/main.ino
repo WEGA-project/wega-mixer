@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.047"
+#define FW_version  "1.048"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -50,7 +50,7 @@ const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
 
 //Коэффициенты фильтрации Кальмана
-float Kl1= 0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
+float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 String wstatus,wpomp;
@@ -95,7 +95,7 @@ wstatus="Ready";
   server.handleClient();
 
 delay (3000);
-scale.tare(255);
+tareScalesWithCheck(255);
 lcd.clear();
 }
 
@@ -152,15 +152,14 @@ else
           
   server.send(200, "text/html", message);
 
-}
+   }
 
 
 void scales (){
- float raw = scale.read_average(255);
  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
         message += "<meta http-equiv='refresh' content='5'>";
         message += "<h3>Current weight = " + fFTS(fscl,2) + "</h3>";
-        message += "RAW = " + fFTS(raw,0);
+        message += "RAW = " + fFTS(unitsToRaw(fscl),0);
         message += "<p><input type='button' class='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
         message += "<input type='button' class='button' onclick=\"window.location.href = '/';\" value='Home'/>";
         message += "</p>";
@@ -170,7 +169,7 @@ void scales (){
   }
 
 void tare (){
-scale.tare(255);
+tareScalesWithCheck(255);
 String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
        message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
 
@@ -179,14 +178,14 @@ String message = "<script language='JavaScript' type='text/javascript'>setTimeou
   }
 
 void calibrate (){
-float raw = scale.read_average(255);
+float raw = unitsToRaw(readScalesWithCheck(255));
 String  message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
         message += "Calibrate (calculate scale_calibration value)";
         message += "<h1>Current RAW = " + fFTS(raw,0) + "</h1>";
         scale.set_scale(scale_calibration_A);
-        message += "<br><h2>Current Value for point A = " + fFTS(scale.get_units(128),2) + "g</h2>";
+        message += "<br><h2>Current Value for point A = " + fFTS(rawToUnits(raw),2) + "g</h2>";
         scale.set_scale(scale_calibration_B);
-        message += "<br><h2>Current Value for point B = " + fFTS(scale.get_units(128),2) + "g</h2>";
+        message += "<br><h2>Current Value for point B = " + fFTS(rawToUnits(raw),2) + "g</h2>";
         message += "<br>Current scale_calibration_A = " + fFTS(scale_calibration_A,4);
         message += "<br>Current scale_calibration_B = " + fFTS(scale_calibration_B,4);  
 message += "<form action='' method='get'>";
@@ -333,14 +332,18 @@ lcd.clear();
 void loop() {
   server.handleClient();
   ArduinoOTA.handle();
+
+  #if (KALMAN || !defined(KALMAN))
+    float scl  = scale.get_units(16);
+    fscl = kalmanFilter(scl);
+    if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;}
+  #else
+    fscl = scale.get_units(128);  
+  #endif
+  lcd.setCursor(0, 1);
+  lcd.print(fscl, 2);
+  lcd.print("         ");
   
- lcd.setCursor(0, 1);
- float scl=scale.get_units(16);
- fscl=fl1(scl);
- if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;} 
- lcd.print(fscl,2);
- lcd.print("         ");
-   
   lcd.setCursor(10, 0);
   lcd.print("Ready  "); 
 }
@@ -353,9 +356,7 @@ String fFTS(float x, byte precision) {
   return String(tmp);
 }
 
-// Функция фильтрации Кальмана 1
-// Function: Kalman filter 
-float fl1(float val) { 
+float kalmanFilter(float val) { 
   Pc1 = P1 + Pr1;
   G1 = Pc1/(Pc1 + Kl1);
   P1 = (1-G1)*Pc1;
@@ -382,7 +383,7 @@ float PumpReverse(int npump,int npumpr) {
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
   }
-  
+
 // Функция налива
 // Function: pour solution
 float pumping(float wt, int npump,int npumpr, String nm, int preload) {
@@ -400,7 +401,7 @@ delay(preload);
 
 lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);
               lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
-  scale.tare(255);
+  tareScalesWithCheck(255);
   mcp.begin();
   
 PumpStart(npump,npumpr);
@@ -419,7 +420,7 @@ PumpStop(npump,npumpr);
   lcd.print("RUNING");
 
 
-  float value=scale.get_units(64);
+  float value = readScalesWithCheck(128);
   float pvalue,sk;
 
   
@@ -464,7 +465,7 @@ PumpStop(npump,npumpr);
     
     delay (100);
 
-    value=scale.get_units(254);
+    value=readScalesWithCheck(128);
     Xe1=value;
     curvol=value;
     }
@@ -488,4 +489,34 @@ else {
   delay (1000);
   server.handleClient();
   }
+}
+
+
+// Функции для работы с весами
+float readScales(int times) {
+  float value1 = scale.get_units(times / 2);
+  delay(20);
+  float value2 = scale.get_units(times / 2);
+  return (fabs(value1 - value2) > 0.01) ? NAN: (value1 + value2) / 2;
+}
+
+float readScalesWithCheck(int times) {
+  while (true) {
+    float result = readScales(times);
+    if (!isnan(result)) {
+      return result;
+    }
+  }
+}
+
+void tareScalesWithCheck(int times) {
+  scale.set_offset(unitsToRaw(readScalesWithCheck(times)));
+}
+
+float unitsToRaw(float units) {
+  return units * scale.get_scale() + scale.get_offset();
+}
+
+float rawToUnits(float raw) {
+  return (raw - scale.get_offset()) / scale.get_scale();
 }
