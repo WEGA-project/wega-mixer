@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.048"
+#define FW_version  "1.049"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -53,6 +53,7 @@ HX711 scale;
 float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
+float RawStartA,RawEndA,RawStartB,RawEndB;
 String wstatus,wpomp;
 
 void setup() {
@@ -102,11 +103,12 @@ lcd.clear();
 
 void handleRoot() {
  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
-
- 
-
  
         message += "Status: " + wstatus + "<br>";
+        message += "<br>Sum A = " + fFTS( (rawToUnits(RawEndA)-rawToUnits(RawStartA)) ,2);
+        message += "<br>Sum B = " + fFTS( (rawToUnits(RawEndB)-rawToUnits(RawStartB)) ,2);
+        message += "<br>";
+        
  if (wstatus != "Ready" )
   {message = " Work pomp: " + wpomp + "<br>Current vol: " + fFTS(curvol,2) + "g";}
 
@@ -140,7 +142,9 @@ message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "
 message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
 
 if (wstatus == "Ready" )  
- { message += "<p><input type='submit' class='button' value='Start'/>  ";
+ { 
+
+   message += "<p><input type='submit' class='button' value='Start'/>  ";
    message += "<input type='button' class='button' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
    message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
    message += "</p></form>";
@@ -283,19 +287,32 @@ float v8=server.arg("p8").toFloat();
   server.send(200, "text/html", message);
 // A (1-3)
 scale.set_scale(scale_calibration_A); //A side
-  p1=pumping(v1, pump1,pump1r, pump1n, pump1p);
-  p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
-  p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
+RawStartA=unitsToRaw(readScalesWithCheck(255));
 
+  p1=pumping(v1, pump1,pump1r, pump1n, pump1p);
+    RawEndA=unitsToRaw(readScalesWithCheck(255));
+    
+  p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
+    RawEndA=unitsToRaw(readScalesWithCheck(255));
+    
+  p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
+    RawEndA=unitsToRaw(readScalesWithCheck(255));  
  
 // B (4-8)
-scale.set_scale(scale_calibration_B); //B side  
-  p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
-  p5=pumping(v5, pump5,pump5r, pump5n, pump5p);
-  p6=pumping(v6, pump6,pump6r, pump6n, pump6p);
-  p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
-  p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
+scale.set_scale(scale_calibration_B); //B side 
+RawStartB=unitsToRaw(readScalesWithCheck(255)); 
 
+  p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
+    RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+  p5=pumping(v5, pump5,pump5r, pump5n, pump5p);
+    RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+  p6=pumping(v6, pump6,pump6r, pump6n, pump6p);
+    RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+  p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
+    RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+  p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
+    RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+ 
   wstatus="Ready";
 
 WiFiClient client;
