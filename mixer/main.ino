@@ -49,8 +49,27 @@ const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
 
-//Коэффициенты фильтрации Кальмана
-float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
+class Kalman { // https://github.com/denyssene/SimpleKalmanFilter
+  private:
+  float err_measure, err_estimate, q, last_estimate;  
+
+  public:
+  Kalman(float _err_measure, float _err_estimate, float _q) {
+      err_measure = _err_measure;
+      err_estimate = _err_estimate;
+      q = _q;
+  }
+
+  float filter(float measurement) {
+    float gain = err_estimate / (err_estimate + err_measure);
+    float current_estimate = last_estimate + gain * (measurement - last_estimate);
+    err_estimate =  (1.0 - gain) * err_estimate + fabs(last_estimate - current_estimate) * q;
+    last_estimate = current_estimate;
+    return last_estimate;
+  }
+};
+
+Kalman displayFilter = Kalman(0.7, 0.04, 0.9);
 
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 float RawStartA,RawEndA,RawStartB,RawEndB;
@@ -351,9 +370,7 @@ void loop() {
   ArduinoOTA.handle();
 
   #if (KALMAN || !defined(KALMAN))
-    float scl  = scale.get_units(16);
-    fscl = kalmanFilter(scl);
-    if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;}
+    fscl = displayFilter.filter(scale.get_units(16));
   #else
     fscl = scale.get_units(128);  
   #endif
@@ -371,16 +388,6 @@ String fFTS(float x, byte precision) {
   char tmp[50];
   dtostrf(x, 0, precision, tmp);
   return String(tmp);
-}
-
-float kalmanFilter(float val) { 
-  Pc1 = P1 + Pr1;
-  G1 = Pc1/(Pc1 + Kl1);
-  P1 = (1-G1)*Pc1;
-  Xp1 = Xe1;
-  Zp1 = Xp1;
-  Xe1 = G1*(val-Zp1)+Xp1; // "фильтрованное" значение - Filtered value
-  return(Xe1);
 }
 
 // Функции помп
@@ -483,7 +490,6 @@ PumpStop(npump,npumpr);
     delay (100);
 
     value=readScalesWithCheck(128);
-    Xe1=value;
     curvol=value;
     }
    PumpStop(npump,npumpr);
@@ -507,7 +513,6 @@ else {
   server.handleClient();
   }
 }
-
 
 // Функции для работы с весами
 float readScales(int times) {
