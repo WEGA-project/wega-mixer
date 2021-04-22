@@ -553,9 +553,9 @@ while (value<0.3){
       lcd.print(" Preload...");
       lcd.setCursor(0, 1);
       lcd.print(value, 1);
-      lcd.print("g ");
+      lcd.print("g      ");
       lcd.print(millis()-TimePreload, 0);
-      lcd.print("ms   ");
+      lcd.print("ms ");
   }
   TimePreload=millis()-TimePreload;
 
@@ -600,6 +600,7 @@ while (value < wt-psize) {
   PumpStart(npump,npumpr);
   delay (ms);
   PumpStop(npump,npumpr);
+
   value = scale.get_units(ws);
   float v0=value;
       lcd.setCursor(0, 0);
@@ -609,13 +610,14 @@ while (value < wt-psize) {
       lcd.print(value, 2);
       lcd.print("g ");
       lcd.print(ms, 0);
-      lcd.print("ms ");
+      lcd.print("ms         ");
 
   PumpReverse(npump,npumpr);
   delay (4);
   PumpStart(npump,npumpr);
   delay (ms);
   PumpStop(npump,npumpr);
+
   value = scale.get_units(ws);
   float v1=value;
 
@@ -623,15 +625,18 @@ while (value < wt-psize) {
       lcd.print(value, 2);
       lcd.print("g ");
       lcd.print(ms, 0);
-      lcd.print("ms ");
+      lcd.print("ms         ");
 
+   if (abs((v1-v0)/v0)>0.01){value=scale.get_units(254);Xe1=value;}
 
    if (v1-v0 < 0.02 ) {ms=ms+atime;} else{ms=ms-atime;}
   if (ms<atime){ms=atime;}
 
-  if (wt-value < 0.2) { ws=254;  }
+  if (wt-value < 0.2) { ws=80;  }
 
   if (v1-v0 > 0.1) {ms=atime;}
+
+  if (value-psize>=wt){value=scale.get_units(254);Xe1=value;}
   }
 
 PumpStop(npump,npumpr);
@@ -663,7 +668,7 @@ while (millis()-stime < preload ){
  
       lcd.setCursor(0, 0);
       lcd.print(nm);
-      lcd.print("End pump...");
+      lcd.print(" End pump...");
       lcd.setCursor(0, 1);
       lcd.print(value, 2);
       lcd.print("g ");
