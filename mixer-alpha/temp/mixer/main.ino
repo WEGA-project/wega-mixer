@@ -1,7 +1,13 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.050"
+#define FW_version  "1.1"
+
+// Kalman filtering in scales mode
+#define KALMAN true
+
+// Temperature compensation
+float Tk=0.6358;
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -14,6 +20,9 @@ ESP8266WebServer server(80);
 #include <WiFiClient.h>
 #include <ESP8266HTTPClient.h>
 
+// AHT10 for termocompensation
+#include "src/Adafruit_AHTX0/Adafruit_AHTX0.h"
+Adafruit_AHTX0 aht;
 
 #include <Wire.h>
 #include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
@@ -44,17 +53,41 @@ Adafruit_MCP23017 mcp;
 #include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
 
+// градус
+//byte simvol[8] = {
+//0b01100,
+//0b10010,
+//0b10010,
+//0b01100,
+//0b00000,
+//0b00000,
+//0b00000,
+//0b00000
+//};
+
+byte simvol[8] = {
+0b01000,
+0b10100,
+0b01000,
+0b00111,
+0b01000,
+0b01000,
+0b00111,
+0b00000
+};
+
 #include "src/HX711/src/HX711.h"
 const int LOADCELL_DOUT_PIN = D5;
 const int LOADCELL_SCK_PIN = D6;
 HX711 scale;
 
 //Коэффициенты фильтрации Кальмана
-float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
+double Kl1=0.01, Pr1=0.01, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
-float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
+float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol,T0;
 float RawStartA,RawEndA,RawStartB,RawEndB;
 String wstatus,wpomp;
+bool TSens;
 float mTimes, eTimes;
 
 void setup() {
@@ -85,6 +118,7 @@ void setup() {
 scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
 //scale.set_scale(1738.f); //B side
 scale.set_scale(scale_calibration_A); //A side
+ lcd.clear();
  lcd.setCursor(0, 0);
   lcd.print("Start FW: ");
   lcd.print(FW_version);
@@ -96,13 +130,32 @@ wstatus="Ready";
 
   server.handleClient();
 
-delay (3000);
+
+
+
+// AHT10 > temperature and humidity
+//aht.begin();
+
+
+lcd.createChar(1, simvol);
 tareScalesWithCheck(255);
-lcd.clear();
+if (!aht.begin()) 
+  {TSens=0;}
+  else
+  {
+    TSens=1;
+      sensors_event_t humidity, temp;
+      aht.getEvent(&humidity, &temp);
+      
+  }
+
+
+
 }
 
 
 void handleRoot() {
+ 
  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
  
         message += "Status: " + wstatus + "<br>";
@@ -110,11 +163,9 @@ void handleRoot() {
         message += "<br>Sum B = " + fFTS( (rawToUnits(RawEndB)-rawToUnits(RawStartB)) ,2);
         message += "<br>Timer = " + fFTS( eTimes/1000 ,0) + " sec";
         message += "<br>";
-    
+        
  if (wstatus != "Ready" )
-  {message = " Work pomp: " + wpomp + "<br>Current vol: " + fFTS(curvol,2) + "g";
-   message += "<br>Timer = " + fFTS( (millis()-mTimes)/1000 ,0) + " sec";
-  }
+  {message = " Work pomp: " + wpomp + "<br>Current vol: " + fFTS(curvol,2) + "g";}
 
 float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
 float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
@@ -234,16 +285,80 @@ if (s2 != 0)
 
 
 void test (){
-    float dl=30000;
-    server.send(200, "text/html", "testing pump...");
-    lcd.home();lcd.print("Pump 1 Start");PumpStart(pump1,pump1r);delay(dl);lcd.home();lcd.print("Pump 1 Revers       ");PumpReverse(pump1,pump1r);delay(dl);lcd.home();lcd.print("Pump 1 Stop      ");delay(1000);PumpStop(pump1,pump1r);
-    lcd.home();lcd.print("Pump 2 Start");PumpStart(pump2,pump2r);delay(dl);lcd.home();lcd.print("Pump 2 Revers       ");PumpReverse(pump2,pump2r);delay(dl);lcd.home();lcd.print("Pump 2 Stop      ");delay(1000);PumpStop(pump2,pump2r);
-    lcd.home();lcd.print("Pump 3 Start");PumpStart(pump3,pump3r);delay(dl);lcd.home();lcd.print("Pump 3 Revers       ");PumpReverse(pump3,pump3r);delay(dl);lcd.home();lcd.print("Pump 3 Stop      ");delay(1000);PumpStop(pump3,pump3r);
-    lcd.home();lcd.print("Pump 4 Start");PumpStart(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Revers       ");PumpReverse(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Stop      ");delay(1000);PumpStop(pump4,pump4r);
-    lcd.home();lcd.print("Pump 5 Start");PumpStart(pump5,pump5r);delay(dl);lcd.home();lcd.print("Pump 5 Revers       ");PumpReverse(pump5,pump5r);delay(dl);lcd.home();lcd.print("Pump 5 Stop      ");delay(1000);PumpStop(pump5,pump5r);
-    lcd.home();lcd.print("Pump 6 Start");PumpStart(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Revers       ");PumpReverse(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Stop      ");delay(1000);PumpStop(pump6,pump6r);
-    lcd.home();lcd.print("Pump 7 Start");PumpStart(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Revers       ");PumpReverse(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Stop      ");delay(1000);PumpStop(pump7,pump7r);
-    lcd.home();lcd.print("Pump 8 Start");PumpStart(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Revers       ");PumpReverse(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Stop      ");delay(1000);PumpStop(pump8,pump8r);
+
+  
+ lcd.clear();
+ lcd.print("Pump 1 test");
+
+PumpReverse(pump1,pump1r);
+delay (10000);
+PumpStop(pump1,pump1r);
+tareScalesWithCheck(255); 
+ long dt= millis();
+ 
+
+float value = 0;
+PumpStart(pump1,pump1r);
+while ( value < 1 ) {
+ 
+ //lcd.setCursor(0, 1);
+  //lcd.print(value, 2);
+  long n=0;
+  value = scale.get_units(8);
+}
+dt= millis()-dt;
+PumpStop(pump1,pump1r);
+delay (100);
+value = scale.get_units(254);
+
+
+PumpReverse(pump1,pump1r);
+delay (10000);
+PumpStop(pump1,pump1r);
+tareScalesWithCheck(255); 
+ long dt2= millis();
+
+float value2 = 0;
+PumpStart(pump1,pump1r);
+while ( value2 < 10 ) {
+ 
+ //lcd.setCursor(0, 1);
+  //lcd.print(value, 2);
+  long n=0;
+  value2 = scale.get_units(8);
+}
+dt2= millis()-dt2;
+PumpStop(pump1,pump1r);
+delay (100);
+value2 = scale.get_units(254);
+
+
+lcd.setCursor(0, 1);
+lcd.print(dt2);
+
+
+
+String  message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
+        message += "Calibrate (calculate scale_calibration value)";
+        message += "<h1>time1 = " + fFTS(dt,0) + "</h1>";
+        message += "<h1>value1 = " + fFTS(value,3) + "</h1>";
+        message += "<h1>time2 = " + fFTS(dt2,0) + "</h1>";
+        message += "<h1>value2 = " + fFTS(value2,3) + "</h1>";
+        message += "<h1>value2-value1 = " + fFTS(value2-value,3) + "</h1>";
+  server.send(200, "text/html", message);
+  
+//    float dl=30000;
+//    server.send(200, "text/html", "testing pump...");
+//    lcd.home();lcd.print("Pump 1 Start");PumpStart(pump1,pump1r);delay(dl);lcd.home();lcd.print("Pump 1 Revers       ");PumpReverse(pump1,pump1r);delay(dl);lcd.home();lcd.print("Pump 1 Stop      ");delay(1000);PumpStop(pump1,pump1r);
+//    lcd.home();lcd.print("Pump 2 Start");PumpStart(pump2,pump2r);delay(dl);lcd.home();lcd.print("Pump 2 Revers       ");PumpReverse(pump2,pump2r);delay(dl);lcd.home();lcd.print("Pump 2 Stop      ");delay(1000);PumpStop(pump2,pump2r);
+//    lcd.home();lcd.print("Pump 3 Start");PumpStart(pump3,pump3r);delay(dl);lcd.home();lcd.print("Pump 3 Revers       ");PumpReverse(pump3,pump3r);delay(dl);lcd.home();lcd.print("Pump 3 Stop      ");delay(1000);PumpStop(pump3,pump3r);
+//    lcd.home();lcd.print("Pump 4 Start");PumpStart(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Revers       ");PumpReverse(pump4,pump4r);delay(dl);lcd.home();lcd.print("Pump 4 Stop      ");delay(1000);PumpStop(pump4,pump4r);
+//    lcd.home();lcd.print("Pump 5 Start");PumpStart(pump5,pump5r);delay(dl);lcd.home();lcd.print("Pump 5 Revers       ");PumpReverse(pump5,pump5r);delay(dl);lcd.home();lcd.print("Pump 5 Stop      ");delay(1000);PumpStop(pump5,pump5r);
+//    lcd.home();lcd.print("Pump 6 Start");PumpStart(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Revers       ");PumpReverse(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Stop      ");delay(1000);PumpStop(pump6,pump6r);
+//    lcd.home();lcd.print("Pump 7 Start");PumpStart(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Revers       ");PumpReverse(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Stop      ");delay(1000);PumpStop(pump7,pump7r);
+//    lcd.home();lcd.print("Pump 8 Start");PumpStart(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Revers       ");PumpReverse(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Stop      ");delay(1000);PumpStop(pump8,pump8r);
+//  
+  
   }
 
 
@@ -292,29 +407,38 @@ float v8=server.arg("p8").toFloat();
   server.send(200, "text/html", message);
 // A (1-3)
 scale.set_scale(scale_calibration_A); //A side
-RawStartA=unitsToRaw(readScalesWithCheck(255));
 
-  p1=pumping(v1, pump1,pump1r, pump1n, pump1p);
-  p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
-  p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
+  p1=pumping2(v1, pump1,pump1r, pump1n, pump1p);
+  RawEndA=unitsToRaw(readScalesWithCheck(255));  
   
-RawEndA=unitsToRaw(readScalesWithCheck(255));  
+  p2=pumping2(v2, pump2,pump2r, pump2n, pump2p);
+  RawEndA=unitsToRaw(readScalesWithCheck(255));  
+  
+  p3=pumping2(v3, pump3,pump3r, pump3n, pump3p);
+  RawEndA=unitsToRaw(readScalesWithCheck(255)); 
+
+  p8=pumping2(v8, pump8,pump8r, pump8n, pump8p); 
+  RawEndA=unitsToRaw(readScalesWithCheck(255)); 
  
 // B (4-8)
 scale.set_scale(scale_calibration_B); //B side 
-RawStartB=unitsToRaw(readScalesWithCheck(255)); 
 
-  p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
-  p5=pumping(v5, pump5,pump5r, pump5n, pump5p);
-  p6=pumping(v6, pump6,pump6r, pump6n, pump6p);
-  p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
-  p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
-  
+  p4=pumping2(v4, pump4,pump4r, pump4n, pump4p);
+  RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+
+  p5=pumping2(v5, pump5,pump5r, pump5n, pump5p);
 RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+
+  p6=pumping2(v6, pump6,pump6r, pump6n, pump6p);
+RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+
+  p7=pumping2(v7, pump7,pump7r, pump7n, pump7p);
+RawEndB=unitsToRaw(readScalesWithCheck(255)); 
+
+ 
  
   wstatus="Ready";
   eTimes=millis()-mTimes;
-  
 WiFiClient client;
 HTTPClient http;
 String httpstr=WegaApiUrl;
@@ -351,18 +475,41 @@ void loop() {
   ArduinoOTA.handle();
 
   #if (KALMAN || !defined(KALMAN))
-    float scl  = scale.get_units(16);
+    float scl  = scale.get_units(1);
+    Pr1=0.00001;
     fscl = kalmanFilter(scl);
-    if (abs(scl-fscl)/fscl > 0.05) {Xe1=scl;}
+    if (abs(scl-fscl) > 1  ) 
+      {if(abs(scale.get_units(32)-fscl) > 1  ) 
+        {Xe1=scale.get_units(64);}
+      }
   #else
     fscl = scale.get_units(128);  
   #endif
   lcd.setCursor(0, 1);
   lcd.print(fscl, 2);
-  lcd.print("         ");
+  lcd.print(" ");
   
-  lcd.setCursor(10, 0);
-  lcd.print("Ready  "); 
+  //lcd.setCursor(10, 0);
+  //lcd.print("Ready  "); 
+if (TSens=1){
+      // AHT10 > temperature and humidity
+      sensors_event_t humidity, temp;
+      aht.getEvent(&humidity, &temp);
+if (millis()<10000){T0=temp.temperature;}
+      float Tkomps=(temp.temperature-T0)*Tk;
+    
+    //  httpstr +=  "&AirTemp=" +fFTS(temp.temperature, 3);
+    //httpstr +=  "&AirHum=" +fFTS(humidity.relative_humidity, 3);
+      lcd.setCursor(0, 0);
+      lcd.print(temp.temperature, 2);
+      lcd.print(char(1));
+      lcd.print(" ");
+      lcd.print(T0, 2);
+      lcd.print(" ");
+      lcd.setCursor(6, 1);
+      lcd.print(fscl+Tkomps, 2);
+      lcd.print(" ");
+     }
 }
 
 // Функция преобразования чисел с плавающей запятой в текст
@@ -400,6 +547,132 @@ float PumpReverse(int npump,int npumpr) {
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
   }
+
+float Preload(int npump,int npumpr, int preload) {
+  
+  }
+  
+
+float pumping2(float wt, int npump,int npumpr, String nm, int preload) {
+
+wstatus="Worked...";
+wpomp=nm; 
+float value=0; 
+tareScalesWithCheck(255);
+  server.handleClient();
+if (wt > 0 ){
+
+// Прелоад
+float TimePreload=millis();
+PumpStart(npump,npumpr);
+Pr1=0.00001;  // Инерция кальмана, чем меньше тем медленнее
+while (value<0.3){
+  server.handleClient();
+  value = scale.get_units(3);
+      lcd.setCursor(0, 0);
+      lcd.print(nm);
+      lcd.print(" Preload...");
+      lcd.setCursor(0, 1);
+      lcd.print(value, 1);
+      lcd.print("g ");
+      lcd.print(millis()-TimePreload, 0);
+      lcd.print("ms   ");
+  }
+  TimePreload=millis()-TimePreload;
+PumpStop(npump,npumpr);
+  value = scale.get_units(255);
+
+
+// Быстрый налив
+Pr1=0.001;
+PumpStart(npump,npumpr);
+while (value < wt-1) {
+        server.handleClient();
+          value=kalmanFilter (scale.get_units(1));
+              lcd.setCursor(0, 1);
+              lcd.print(value, 2);
+              lcd.print("g ");
+          }
+
+  
+PumpStop(npump,npumpr);
+delay (100);
+      value = scale.get_units(255);
+      lcd.setCursor(0, 1);
+      lcd.print(value, 2);
+      lcd.print("g ");
+
+// Капельный
+
+Pr1=0.0001;  // Инерция кальмана, чем меньше тем медленнее
+int ws=8; // Усреднение измерений при быстром наливе, чем больше тем точнее но медленнее (можно пролить)
+float psize=0.02; // Примерный размер капли для адаптивного режима
+float atime=5; // Время в мс для регулировки адаптивного режима покапельного налива если меньше или больше капли  
+
+float ms=0;
+Xe1=value;
+
+while (value < wt-psize) {
+        server.handleClient();
+  
+  PumpStart(npump,npumpr);
+  delay (ms);
+  PumpStop(npump,npumpr);
+  value = scale.get_units(ws);
+  float v0=value;
+
+      lcd.setCursor(0, 1);
+      lcd.print(value, 2);
+      lcd.print("g ");
+      lcd.print(ms, 0);
+      lcd.print("ms ");
+
+  
+  PumpStart(npump,npumpr);
+  delay (ms);
+  PumpStop(npump,npumpr);
+  value = scale.get_units(ws);
+  float v1=value;
+
+      lcd.setCursor(0, 1);
+      lcd.print(value, 2);
+      lcd.print("g ");
+      lcd.print(ms, 0);
+      lcd.print("ms ");
+
+
+   if (v1-v0 < 0.02 ) {ms=ms+5;} else{ms=ms-5;}
+  if (ms<10){ms=10;}
+
+  if (wt-value < 0.2) {ws=254;}
+  }
+
+PumpStop(npump,npumpr);
+delay (100);
+      value = scale.get_units(255);
+      lcd.setCursor(0, 1);
+      lcd.print(value, 2);
+      lcd.print("g ");
+
+// Реверс-продувка
+delay (3000);
+float stime=millis();
+PumpReverse(npump,npumpr);
+while (millis()-stime < preload ){
+    server.handleClient();
+    lcd.setCursor(0, 0);
+    lcd.print(nm);
+    lcd.print(" Reverse...");
+    lcd.setCursor(0, 1);
+    lcd.print(preload-(millis()-stime),0);
+    lcd.print(" ms        ");
+  }
+ 
+PumpStop(npump,npumpr);
+
+ }    
+return value;  
+}
 
 // Функция налива
 // Function: pour solution
@@ -516,6 +789,8 @@ float readScales(int times) {
   float value2 = scale.get_units(times / 2);
   return (fabs(value1 - value2) > 0.01) ? NAN: (value1 + value2) / 2;
 }
+
+
 
 float readScalesWithCheck(int times) {
   while (true) {
