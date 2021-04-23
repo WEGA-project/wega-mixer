@@ -527,6 +527,7 @@ float Speed_Pr1=0.001;  // Для быстрого налива
 float Drops_Pr1=0.0001;  // Для капельного налива
 float psize=0.02; // Примерный вес капли в граммах для адаптивного режима (зависит от выхода трубки)
 float atime=5; // Значение в мс плюс и минус для адаптивного режима
+float pgramm=0.5; // Значение в граммах при меньше которого не используется адаптивный прелоад
 
 
 wstatus="Worked...";
@@ -540,11 +541,15 @@ if (wt > 0 ){
 // Прелоад
 wstatus="Worked, preload...";
 float TimePreload=millis();
+
+if (wt > pgramm) {
+// Если  да то адаптивный, если нет то статический прелоад
+
 PumpReverse(npump,npumpr);
 delay (4);
 PumpStart(npump,npumpr);
 Pr1=Preload_Pr1; 
-while (value<0.3){
+while (value<0.3 ){
   server.handleClient();
   curvol=value;
   value = scale.get_units(8);
@@ -558,15 +563,26 @@ while (value<0.3){
       lcd.print("ms ");
   }
   TimePreload=millis()-TimePreload;
+}
+else // если налить мало, то делаем сперва реверс а затем прелоад статический.
+{
+        lcd.setCursor(0, 0);
+      lcd.print(nm);
+      lcd.print(" SPreload...");
+ PumpReverse(npump,npumpr);
+delay (preload);
+PumpStart(npump,npumpr);
+delay (preload);
 
+  }
 
 // Быстрый налив
 Pr1=Speed_Pr1;
 PumpStart(npump,npumpr);
 while (value < wt-1) {
+        value=kalmanFilter (scale.get_units(1));
         curvol=value;
         server.handleClient();
-          value=kalmanFilter (scale.get_units(1));
               lcd.setCursor(0, 0);
               lcd.print(nm);
               lcd.print(" Speed pump...");
@@ -634,7 +650,8 @@ while (value < wt-psize) {
 
   if (wt-value < 0.2) { ws=80;  }
 
-  if (v1-v0 > 0.1) {ms=atime;}
+// Если между двумя замерами налилось больше 3-х капель сбросить скорость на начальную
+  if (v1-v0 > psize*3) {ms=atime;}
 
   if (value-psize>=wt){value=scale.get_units(254);Xe1=value;}
   }
