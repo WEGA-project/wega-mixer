@@ -580,7 +580,7 @@ delay (preload);
 Pr1=Speed_Pr1;
 PumpStart(npump,npumpr);
 while (value < wt-1) {
-        value=kalmanFilter (scale.get_units(1));
+        value=kalmanFilter (scale.get_units(3));
         curvol=value;
         server.handleClient();
               lcd.setCursor(0, 0);
