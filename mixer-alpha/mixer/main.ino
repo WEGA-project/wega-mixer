@@ -523,8 +523,8 @@ else {
 float pumping2(float wt, int npump,int npumpr, String nm, int preload) {
 // Инерция кальмана, чем меньше тем выше инерционность (труднее изменить значение)
 float Preload_Pr1=0.0000001;  // Для прелоада
-float Speed_Pr1=0.001;  // Для быстрого налива
-float SpeedWeight=2; // При быстром наливе не доливать 2 грамма (чтобы не промахнуться).
+float Speed_Pr1=0.005;  // Для быстрого налива
+float SpeedWeight=3; // При быстром наливе не доливать заданное число грамм (чтобы не промахнуться).
 int SpeedMid=4; // Число усреднений ацп при быстром наливе, чем выше тем меньше шума но есть шанс перелива
 
 float Drops_Pr1=0.0001;  // Для капельного налива
@@ -596,6 +596,7 @@ while (value < wt-SpeedWeight) {
           PumpStop(npump,npumpr);
           value = scale.get_units(255);
           Xe1=value;
+          PumpStart(npump,npumpr);
           }
         }
 
