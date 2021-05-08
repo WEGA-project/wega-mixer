@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.049"
+#define FW_version  "1.050"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -78,6 +78,7 @@ Kalman filter = Kalman(1000, 80, 0.4);         // резкий
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 float RawStartA,RawEndA,RawStartB,RawEndB;
 String wstatus,wpomp;
+float mTimes, eTimes;
 
 void setup() {
   WiFi.mode(WIFI_STA);
@@ -130,11 +131,13 @@ void handleRoot() {
         message += "Status: " + wstatus + "<br>";
         message += "<br>Sum A = " + toString(((RawEndA - RawStartA) / scale_calibration_A) ,2);
         message += "<br>Sum B = " + toString(((RawEndB - RawStartB) / scale_calibration_B) ,2);
+        message += "<br>Timer = " + toString( eTimes/1000 ,0) + " sec";
         message += "<br>";
-        
- if (wstatus != "Ready" )
-  {message = " Work pomp: " + wpomp + "<br>Current vol: " + toString(curvol,2) + "g";}
-
+    
+ if (wstatus != "Ready" ) {
+    message = " Work pomp: " + wpomp + "<br>Current vol: " + toString(curvol,2) + "g";
+    message += "<br>Timer = " + toString( (millis()-mTimes)/1000 ,0) + " sec";
+ }
 float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
 float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
 float p3f=server.arg("p3").toFloat(), p3c=(p3-p3f)/p3f*100;
@@ -266,6 +269,7 @@ void test (){
 
 
 void st() {
+mTimes=millis();
 
 float v1=server.arg("p1").toFloat();
 float v2=server.arg("p2").toFloat();
@@ -313,7 +317,8 @@ float v8=server.arg("p8").toFloat();
   p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
   p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
   RawEndA=readScalesWithCheck(255);   
-// B (4-8)
+  
+  // B (4-8)
   scale.set_scale(scale_calibration_B); //B side 
   RawStartB=RawEndA; 
   p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
@@ -324,7 +329,8 @@ float v8=server.arg("p8").toFloat();
   RawEndB=readScalesWithCheck(255); 
  
   wstatus="Ready";
-
+  eTimes=millis()-mTimes;
+  
 WiFiClient client;
 HTTPClient http;
 String httpstr=WegaApiUrl;
