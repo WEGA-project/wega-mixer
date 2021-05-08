@@ -72,9 +72,8 @@ class Kalman { // https://github.com/denyssene/SimpleKalmanFilter
   }
 };
 
-
-Kalman displayFilter = Kalman(0.7, 0.04, 0.9);
-Kalman filter = Kalman(0.7, 0.04, 0.9);
+Kalman displayFilter = Kalman(1400, 80, 0.15); // плавный
+Kalman filter = Kalman(1000, 80, 0.4);         // резкий
 
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 float RawStartA,RawEndA,RawStartB,RawEndB;
@@ -100,18 +99,18 @@ void setup() {
   ArduinoOTA.onError([](ota_error_t error) {});
   ArduinoOTA.begin();
 
-    Wire.begin(D1, D2);
+  Wire.begin(D1, D2);
   //Wire.setClock(400000L);   // 400 kHz I2C clock speed
-    lcd.begin(D1,D2);      // SDA=D1, SCL=D2               
-    lcd.backlight();
+  lcd.begin(D1,D2);      // SDA=D1, SCL=D2               
+  lcd.backlight();
 
-scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
-//scale.set_scale(1738.f); //B side
-scale.set_scale(scale_calibration_A); //A side
- lcd.setCursor(0, 0);
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  //scale.set_scale(1738.f); //B side
+  scale.set_scale(scale_calibration_A); //A side
+  lcd.setCursor(0, 0);
   lcd.print("Start FW: ");
   lcd.print(FW_version);
- lcd.setCursor(0, 1); 
+  lcd.setCursor(0, 1); 
   lcd.print(WiFi.localIP()); 
 scale.power_up();
 
@@ -361,11 +360,12 @@ void loop() {
   server.handleClient();
   ArduinoOTA.handle();
   scale.set_scale(scale_calibration_A);
+  delay(0);  
   #if (KALMAN || !defined(KALMAN))
     readScales(16);
     fscl = displayFilter.getEstimation();
   #else
-    fscl = scale.get_units(128);  
+    fscl = readScales(128);  
   #endif
   lcd.setCursor(0, 1);
   lcd.print(toString(rawToUnits(fscl), 2));
@@ -403,6 +403,27 @@ float PumpReverse(int npump,int npumpr) {
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
   }
 
+
+void pumpToValue(float capValue, float capMillis, float targetValue, int npump,int npumpr) {
+  float value = rawToUnits(filter.getEstimation());
+  if (value >= capValue) {
+    return;
+  }
+  long endMillis = millis() + capMillis;
+  float maxValue = value;
+  PumpStart(npump,npumpr);
+  while (value < capValue && millis() < endMillis && value > maxValue - 0.05) { 
+    readScales(1);
+    value = rawToUnits(filter.getEstimation());
+    maxValue = max(value, maxValue);
+    lcd.setCursor(0, 1);
+    lcd.print(toString(value, 2)); 
+    lcd.print(" ("); lcd.print(value/targetValue*100,1); lcd.print("%) ");
+    yield();
+  }
+  PumpStop(npump,npumpr);
+}
+
 // Функция налива
 // Function: pour solution
 float pumping(float wt, int npump,int npumpr, String nm, int preload) {
@@ -411,38 +432,67 @@ wpomp=nm;
 
   server.handleClient();
 
-if (wt != 0 and wt < 400){
+  if (wt <= 0) {
+    lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
+    lcd.setCursor(10, 0);
+    lcd.print("SKIP..   ");
+    delay (1000);
+    server.handleClient();
+    return 0;
+  }
+
   // Продувка
   // Mix the solution
   lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
   PumpReverse(npump,npumpr);
   delay(preload);
-
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);
-  lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
-  tareScalesWithCheck(255);
-  mcp.begin();
-  
-  PumpStart(npump,npumpr);
-
-  delay(preload);
-
-  server.handleClient();
-  ArduinoOTA.handle();
   PumpStop(npump,npumpr);
-
+  
+  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Tare...");
+  float value = 0;
+  tareScalesWithCheck(255);
+  
+  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
+  lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
+  PumpStart(npump,npumpr);
+  delay(preload);
+  PumpStop(npump,npumpr);
+  value = rawToUnits(readScalesWithCheck(128));
+  server.handleClient();
+  
+  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload 2...");
+  // до первой капли
+  while (value < 0.02 && wt > 0.5 ) {
+    pumpToValue(0.03, preload, wt, npump, npumpr);
+    value = rawToUnits(readScalesWithCheck(128));
+    curvol=value;
+    server.handleClient();
+  }
+  
+  // до конечного веса минус 0.5 грамм по половине от остатка
+  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Fast...");
+  float performance = 0.0007;
+  float valueToPump;
+  while ((valueToPump = wt - 0.5 - value) > 0) {
+    if (valueToPump > 0.2) valueToPump = valueToPump / 2;
+    long timeToPump = valueToPump / performance;
+    long startTime = millis();
+    pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr);
+    long endTime = millis();
+    value = rawToUnits(readScalesWithCheck(128));
+    if (endTime - startTime > 200 && value-curvol > 0.1) performance = max(performance, (value - curvol) / (endTime - startTime));
+    curvol=value;
+    server.handleClient();
+  }
 
   lcd.clear();
   lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
-
   lcd.setCursor(10, 0);
   lcd.print("RUNING");
 
+  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Drop...");
 
-  float value = rawToUnits(readScalesWithCheck(128));
-  float pvalue,sk;
-
-  
+  float pvalue = value,sk = 25;
   while ( value < wt-0.01 ) {
     lcd.setCursor(0, 1);
     lcd.print(value,2);
@@ -451,62 +501,34 @@ if (wt != 0 and wt < 400){
     lcd.print("%) ");
     lcd.print(sk,0);
     lcd.print("ms     ");
-    //mcp.pinMode(npump, OUTPUT);
-    //mcp.digitalWrite(npump, HIGH);
+    lcd.setCursor(10, 0);
+    lcd.print("PCIS ");
+      
+    if (value-pvalue < 0.01) {if (sk<80){sk=sk+2;}}
+    if (value-pvalue > 0.01) {if (sk>2) {sk=sk-2;}}
+    if (value-pvalue > 0.1 ) {sk=0;}
+
+    pvalue=value;
     PumpStart(npump,npumpr);
-    if (value < (wt-1.5)) { 
-    
-      
-      if (wt - value > 20) {delay (10000);}else{delay (1000);}
-      pvalue=value;
-      sk=80;
-      }
-      else {
-          lcd.setCursor(10, 0);
-          lcd.print("PCIS ");
-
-
-      
-        if (value-pvalue < 0.01) {if (sk<80){sk=sk+2;}}
-        if (value-pvalue > 0.01) {if (sk>2) {sk=sk-2;}}
-        if (value-pvalue > 0.1 ) {sk=0;}
-
-        pvalue=value;
-        delay (sk);
-  
-      
-        }
-    //mcp.digitalWrite(npump, LOW);
+    delay (sk);
     PumpStop(npump,npumpr);
 
     server.handleClient();
-    ArduinoOTA.handle(); 
-    
     delay (100);
-
     value=rawToUnits(readScalesWithCheck(128));
     curvol=value;
-    }
-   PumpStop(npump,npumpr);
-    lcd.setCursor(0, 1);
-    lcd.print(toString(value,2));
-    lcd.print(" (");
-    lcd.print(100-(wt-value)/wt*100,2);
-    lcd.print("%)      ");
-      //server.handleClient();
-   PumpReverse(npump,npumpr);
-   delay (preload*2);
-   PumpStop(npump,npumpr);
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print(toString(value,2));
+  lcd.print(" (");
+  lcd.print(100-(wt-value)/wt*100,2);
+  lcd.print("%)      ");
+  PumpReverse(npump,npumpr);
+  delay (preload*2);
+  PumpStop(npump,npumpr);
     
-    return value;
-  }
-else {
-  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
-  lcd.setCursor(10, 0);
-  lcd.print("SKIP..   ");
-  delay (1000);
-  server.handleClient();
-  }
+  return value;
 }
 
 // Функции для работы с весами
@@ -526,7 +548,7 @@ float readScalesWithCheck(int times) {
     float value1 = readScales(times / 2);
     delay(20);
     float value2 = readScales(times / 2);
-    if (fabs(value1 - value2) < 0.01) {
+    if (fabs(value1 - value2) < (0.01 * scale_calibration_A)) {
       return (value1 + value2) / 2;
     }
   }
