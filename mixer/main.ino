@@ -412,13 +412,16 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   long endMillis = millis() + capMillis;
   float maxValue = value;
   PumpStart(npump,npumpr);
-  while (value < capValue && millis() < endMillis && value > maxValue - 0.05) { 
+  while (value < capValue && millis() < endMillis && value > maxValue - 0.1) { 
     readScales(1);
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
     lcd.setCursor(0, 1);
     lcd.print(toString(value, 2)); 
-    lcd.print(" ("); lcd.print(value/targetValue*100,1); lcd.print("%) ");
+    if (!isnan(targetValue)) {
+      lcd.print(" ("); lcd.print(toString(value/targetValue*100,1)); lcd.print("%)");
+    }
+    lcd.print("  ");
     yield();
   }
   PumpStop(npump,npumpr);
@@ -443,16 +446,16 @@ wpomp=nm;
 
   // Продувка
   // Mix the solution
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
   PumpReverse(npump,npumpr);
   delay(preload);
   PumpStop(npump,npumpr);
   
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Tare...");
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Tare...");
   float value = 0;
   tareScalesWithCheck(255);
   
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
   lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
   PumpStart(npump,npumpr);
   delay(preload);
@@ -460,38 +463,33 @@ wpomp=nm;
   value = rawToUnits(readScalesWithCheck(128));
   server.handleClient();
   
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload 2...");
   // до первой капли
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload2...");
   while (value < 0.02 && wt > 0.5 ) {
-    pumpToValue(0.03, preload, wt, npump, npumpr);
+    pumpToValue(0.03, preload, NAN, npump, npumpr);
     value = rawToUnits(readScalesWithCheck(128));
     curvol=value;
     server.handleClient();
   }
   
-  // до конечного веса минус 0.5 грамм по половине от остатка
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Fast...");
+  // до конечного веса минус 0.5 грамм по половине от остатка 
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Fast...");
   float performance = 0.0007;
   float valueToPump;
   while ((valueToPump = wt - 0.5 - value) > 0) {
-    if (valueToPump > 0.2) valueToPump = valueToPump / 2;
-    long timeToPump = valueToPump / performance;
+    if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
+    long timeToPump = valueToPump / performance;           // ограниечение по времени
     long startTime = millis();
     pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr);
     long endTime = millis();
     value = rawToUnits(readScalesWithCheck(128));
-    if (endTime - startTime > 200 && value-curvol > 0.1) performance = max(performance, (value - curvol) / (endTime - startTime));
+    if (endTime - startTime > 200 && value-curvol > 0.15) performance = max(performance, (value - curvol) / (endTime - startTime));
     curvol=value;
     server.handleClient();
   }
-
-  lcd.clear();
-  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
-  lcd.setCursor(10, 0);
-  lcd.print("RUNING");
-
-  lcd.clear();  lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Drop...");
-
+  
+  // капельный налив
+  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Drop...");
   float pvalue = value,sk = 25;
   while ( value < wt-0.01 ) {
     lcd.setCursor(0, 1);
@@ -501,8 +499,6 @@ wpomp=nm;
     lcd.print("%) ");
     lcd.print(sk,0);
     lcd.print("ms     ");
-    lcd.setCursor(10, 0);
-    lcd.print("PCIS ");
       
     if (value-pvalue < 0.01) {if (sk<80){sk=sk+2;}}
     if (value-pvalue > 0.01) {if (sk>2) {sk=sk-2;}}
