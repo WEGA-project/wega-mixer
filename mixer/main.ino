@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.049"
+#define FW_version  "1.050"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -78,6 +78,7 @@ Kalman filter = Kalman(1000, 80, 0.4);         // резкий
 float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 float RawStartA,RawEndA,RawStartB,RawEndB;
 String wstatus,wpomp;
+float mTimes, eTimes;
 
 void setup() {
   WiFi.mode(WIFI_STA);
@@ -112,75 +113,71 @@ void setup() {
   lcd.print(FW_version);
   lcd.setCursor(0, 1); 
   lcd.print(WiFi.localIP()); 
-scale.power_up();
+  scale.power_up();
 
-wstatus="Ready";
+  wstatus="Ready";
 
   server.handleClient();
 
-delay (3000);
-tareScalesWithCheck(255);
-lcd.clear();
+  delay (3000);
+  tareScalesWithCheck(255);
+  lcd.clear();
 }
 
 
 void handleRoot() {
- String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
+  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
  
         message += "Status: " + wstatus + "<br>";
         message += "<br>Sum A = " + toString(((RawEndA - RawStartA) / scale_calibration_A) ,2);
         message += "<br>Sum B = " + toString(((RawEndB - RawStartB) / scale_calibration_B) ,2);
+        message += "<br>Timer = " + toString( eTimes/1000 ,0) + " sec";
         message += "<br>";
-        
- if (wstatus != "Ready" )
-  {message = " Work pomp: " + wpomp + "<br>Current vol: " + toString(curvol,2) + "g";}
-
-float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
-float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
-float p3f=server.arg("p3").toFloat(), p3c=(p3-p3f)/p3f*100;
-float p4f=server.arg("p4").toFloat(), p4c=(p4-p4f)/p4f*100;
-float p5f=server.arg("p5").toFloat(), p5c=(p5-p5f)/p5f*100;
-float p6f=server.arg("p6").toFloat(), p6c=(p6-p6f)/p6f*100;
-float p7f=server.arg("p7").toFloat(), p7c=(p7-p7f)/p7f*100;
-float p8f=server.arg("p8").toFloat(), p8c=(p8-p8f)/p8f*100;
-
-String prc1,prc2,prc3,prc4,prc5,prc6,prc7,prc8;
-if ( p1f != NULL and p1f != 0){ prc1="="+toString(p1,2)+" "+toString(p1c,2)+"%";}else{prc1="";}
-if ( p2f != NULL and p2f != 0){ prc2="="+toString(p2,2)+" "+toString(p2c,2)+"%";}else{prc2="";}
-if ( p3f != NULL and p3f != 0){ prc3="="+toString(p3,2)+" "+toString(p3c,2)+"%";}else{prc3="";}
-if ( p4f != NULL and p4f != 0){ prc4="="+toString(p4,2)+" "+toString(p4c,2)+"%";}else{prc4="";}
-if ( p5f != NULL and p5f != 0){ prc5="="+toString(p5,2)+" "+toString(p5c,2)+"%";}else{prc5="";}
-if ( p6f != NULL and p6f != 0){ prc6="="+toString(p6,2)+" "+toString(p6c,2)+"%";}else{prc6="";}
-if ( p7f != NULL and p7f != 0){ prc7="="+toString(p7,2)+" "+toString(p7c,2)+"%";}else{prc7="";}
-if ( p8f != NULL and p8f != 0){ prc8="="+toString(p8,2)+" "+toString(p8c,2)+"%";}else{prc8="";}
-
-message += "<form action='st' method='get'>";
-message += "<p>P1 = <input type='text' name='p1' value='" + server.arg("p1") + "'/> "+pump1n +prc1+"</p>";
-message += "<p>P2 = <input type='text' name='p2' value='" + server.arg("p2") + "'/> "+pump2n +prc2+"</p>";
-message += "<p>P3 = <input type='text' name='p3' value='" + server.arg("p3") + "'/> "+pump3n +prc3+"</p>";
-message += "<p>P4 = <input type='text' name='p4' value='" + server.arg("p4") + "'/> "+pump4n +prc4+"</p>";
-message += "<p>P5 = <input type='text' name='p5' value='" + server.arg("p5") + "'/> "+pump5n +prc5+"</p>";
-message += "<p>P6 = <input type='text' name='p6' value='" + server.arg("p6") + "'/> "+pump6n +prc6+"</p>";
-message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "'/> "+pump7n +prc7+"</p>";
-message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
-
-if (wstatus == "Ready" )  
- { 
-
-   message += "<p><input type='submit' class='button' value='Start'/>  ";
-   message += "<input type='button' class='button' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
-   message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
-   message += "</p></form>";
- }
-else
- {
-  message += "<meta http-equiv='refresh' content='10'>";
- }
+    
+  if (wstatus != "Ready" ) {
+    message = " Work pomp: " + wpomp + "<br>Current vol: " + toString(curvol,2) + "g";
+    message += "<br>Timer = " + toString( (millis()-mTimes)/1000 ,0) + " sec";
+  }
+  float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
+  float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
+  float p3f=server.arg("p3").toFloat(), p3c=(p3-p3f)/p3f*100;
+  float p4f=server.arg("p4").toFloat(), p4c=(p4-p4f)/p4f*100;
+  float p5f=server.arg("p5").toFloat(), p5c=(p5-p5f)/p5f*100;
+  float p6f=server.arg("p6").toFloat(), p6c=(p6-p6f)/p6f*100;
+  float p7f=server.arg("p7").toFloat(), p7c=(p7-p7f)/p7f*100;
+  float p8f=server.arg("p8").toFloat(), p8c=(p8-p8f)/p8f*100;
+  
+  String prc1,prc2,prc3,prc4,prc5,prc6,prc7,prc8;
+  if ( p1f != NULL and p1f != 0){ prc1="="+toString(p1,2)+" "+toString(p1c,2)+"%";}else{prc1="";}
+  if ( p2f != NULL and p2f != 0){ prc2="="+toString(p2,2)+" "+toString(p2c,2)+"%";}else{prc2="";}
+  if ( p3f != NULL and p3f != 0){ prc3="="+toString(p3,2)+" "+toString(p3c,2)+"%";}else{prc3="";}
+  if ( p4f != NULL and p4f != 0){ prc4="="+toString(p4,2)+" "+toString(p4c,2)+"%";}else{prc4="";}
+  if ( p5f != NULL and p5f != 0){ prc5="="+toString(p5,2)+" "+toString(p5c,2)+"%";}else{prc5="";}
+  if ( p6f != NULL and p6f != 0){ prc6="="+toString(p6,2)+" "+toString(p6c,2)+"%";}else{prc6="";}
+  if ( p7f != NULL and p7f != 0){ prc7="="+toString(p7,2)+" "+toString(p7c,2)+"%";}else{prc7="";}
+  if ( p8f != NULL and p8f != 0){ prc8="="+toString(p8,2)+" "+toString(p8c,2)+"%";}else{prc8="";}
+  
+  message += "<form action='st' method='get'>";
+  message += "<p>P1 = <input type='text' name='p1' value='" + server.arg("p1") + "'/> "+pump1n +prc1+"</p>";
+  message += "<p>P2 = <input type='text' name='p2' value='" + server.arg("p2") + "'/> "+pump2n +prc2+"</p>";
+  message += "<p>P3 = <input type='text' name='p3' value='" + server.arg("p3") + "'/> "+pump3n +prc3+"</p>";
+  message += "<p>P4 = <input type='text' name='p4' value='" + server.arg("p4") + "'/> "+pump4n +prc4+"</p>";
+  message += "<p>P5 = <input type='text' name='p5' value='" + server.arg("p5") + "'/> "+pump5n +prc5+"</p>";
+  message += "<p>P6 = <input type='text' name='p6' value='" + server.arg("p6") + "'/> "+pump6n +prc6+"</p>";
+  message += "<p>P7 = <input type='text' name='p7' value='" + server.arg("p7") + "'/> "+pump7n +prc7+"</p>";
+  message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "'/> "+pump8n +prc8+"</p>";
+  
+  if (wstatus == "Ready" ) { 
+     message += "<p><input type='submit' class='button' value='Start'/>  ";
+     message += "<input type='button' class='button' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
+     message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
+     message += "</p></form>";
+  } else {
+    message += "<meta http-equiv='refresh' content='10'>";
+  }
           
   server.send(200, "text/html", message);
-
-   }
-
+}
 
 void scales (){
  String message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
@@ -193,61 +190,56 @@ void scales (){
 
   server.send(200, "text/html", message);
 
-  }
+}
 
 void tare (){
-tareScalesWithCheck(255);
-String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
-       message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
-
+  tareScalesWithCheck(255);
+  String message = "<script language='JavaScript' type='text/javascript'>setTimeout('window.history.go(-1)',0);</script>";
+         message += "<input type='button' class='button' onclick='history.back();' value='back'/>";
   server.send(200, "text/html", message);
-
-  }
+}
 
 void calibrate (){
-float raw = readScalesWithCheck(255);
-String  message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
-        message += "Calibrate (calculate scale_calibration value)";
-        message += "<h1>Current RAW = " + toString(raw,0) + "</h1>";
-        message += "<br><h2>Current Value for point A = " + toString(rawToUnits(raw, scale_calibration_A),2) + "g</h2>";
-        message += "<br><h2>Current Value for point B = " + toString(rawToUnits(raw, scale_calibration_B),2) + "g</h2>";
-        message += "<br>Current scale_calibration_A = " + toString(scale_calibration_A,4);
-        message += "<br>Current scale_calibration_B = " + toString(scale_calibration_B,4);  
-message += "<form action='' method='get'>";
-message += "<p>RAW on Zero <input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
-message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
-message += "<p>Value with load (gramm) <input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
-message += "<p><input type='submit' class='button' value='Submit'/>  ";
-message += "<input type='button' class='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
-message += "<button class='button'  onClick='window.location.reload();'>Refresh</button>  ";
-message += "<input class='button' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
-message += "</p>";
-
-float x1=server.arg("x1").toFloat();
-float x2=server.arg("x2").toFloat();
-float s2=server.arg("s2").toFloat();
-float k,y,s;
-
-if (s2 != 0) 
- {
-  k=-(x1-x2)/s2;
-  message += "<br> scale_calibration = <b>"+toString(k,4)+"</b> copy and paste to your sketch";
- }
-
-if (x1 > 0 and x2 > 0) 
- {
-  y=-(s2*x1)/(x1-x2);
-  message += "<br>Calculate preloaded weight = "+toString(y,2) + "g";
- }
- 
-if (s2 != 0)
- { 
-  s=raw*(1/k)-y;
-  message += "<br>Calculate weight = "+toString(s,2) + "g";
- }
+  float raw = readScalesWithCheck(255);
+  String  message = "<head><link rel='stylesheet' type='text/css' href='style.css'></head>";
+          message += "Calibrate (calculate scale_calibration value)";
+          message += "<h1>Current RAW = " + toString(raw,0) + "</h1>";
+          message += "<br><h2>Current Value for point A = " + toString(rawToUnits(raw, scale_calibration_A),2) + "g</h2>";
+          message += "<br><h2>Current Value for point B = " + toString(rawToUnits(raw, scale_calibration_B),2) + "g</h2>";
+          message += "<br>Current scale_calibration_A = " + toString(scale_calibration_A,4);
+          message += "<br>Current scale_calibration_B = " + toString(scale_calibration_B,4);  
+  message += "<form action='' method='get'>";
+  message += "<p>RAW on Zero <input type='text' name='x1' value='" + server.arg("x1") + "'/></p>";
+  message += "<p>RAW value with load <input type='text' name='x2' value='" + server.arg("x2") + "'/></p>";
+  message += "<p>Value with load (gramm) <input type='text' name='s2' value='" + server.arg("s2") + "'/></p>";
+  message += "<p><input type='submit' class='button' value='Submit'/>  ";
+  message += "<input type='button' class='button' onclick=\"window.location.href = 'tare';\" value='Set to ZERO'/>  ";
+  message += "<button class='button'  onClick='window.location.reload();'>Refresh</button>  ";
+  message += "<input class='button' type='button' onclick=\"window.location.href = '/';\" value='Home'/>";
+  message += "</p>";
+  
+  float x1=server.arg("x1").toFloat();
+  float x2=server.arg("x2").toFloat();
+  float s2=server.arg("s2").toFloat();
+  float k,y,s;
+  
+  if (s2 != 0) {
+    k=-(x1-x2)/s2;
+    message += "<br> scale_calibration = <b>"+toString(k,4)+"</b> copy and paste to your sketch";
+  }
+  
+  if (x1 > 0 and x2 > 0) {
+    y=-(s2*x1)/(x1-x2);
+    message += "<br>Calculate preloaded weight = "+toString(y,2) + "g";
+  }
+   
+  if (s2 != 0) { 
+    s=raw*(1/k)-y;
+    message += "<br>Calculate weight = "+toString(s,2) + "g";
+  }
 
   server.send(200, "text/html", message);  
-  }
+}
 
 
 void test (){
@@ -261,49 +253,50 @@ void test (){
     lcd.home();lcd.print("Pump 6 Start");PumpStart(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Revers       ");PumpReverse(pump6,pump6r);delay(dl);lcd.home();lcd.print("Pump 6 Stop      ");delay(1000);PumpStop(pump6,pump6r);
     lcd.home();lcd.print("Pump 7 Start");PumpStart(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Revers       ");PumpReverse(pump7,pump7r);delay(dl);lcd.home();lcd.print("Pump 7 Stop      ");delay(1000);PumpStop(pump7,pump7r);
     lcd.home();lcd.print("Pump 8 Start");PumpStart(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Revers       ");PumpReverse(pump8,pump8r);delay(dl);lcd.home();lcd.print("Pump 8 Stop      ");delay(1000);PumpStop(pump8,pump8r);
-  }
+}
 
 
 
 void st() {
-
-float v1=server.arg("p1").toFloat();
-float v2=server.arg("p2").toFloat();
-float v3=server.arg("p3").toFloat();
-float v4=server.arg("p4").toFloat();
-float v5=server.arg("p5").toFloat();
-float v6=server.arg("p6").toFloat();
-float v7=server.arg("p7").toFloat();
-float v8=server.arg("p8").toFloat();
-
- String message = "Plant<br>P1:";
-       message += toString(v1,2);
-       message += "<br>P2:";
-       message += toString(v2,2);
-       message += "<br>P3:";
-       message += toString(v3,2);
-       message += "<br>P4:"; 
-       message += toString(v4,2);
-       message += "<br>P5:";
-       message += toString(v5,2);
-       message += "<br>P6:";
-       message += toString(v6,2);
-       message += "<br>P7:";    
-       message += toString(v7,2);
-       message += "<br>P8:";
-       message += toString(v8,2);
-
-
-       message += "<meta http-equiv='refresh' content=0;URL=../";
-       message += "?p1="+server.arg("p1");
-       message += "&p2="+server.arg("p2");
-       message += "&p3="+server.arg("p3");
-       message += "&p4="+server.arg("p4");
-       message += "&p5="+server.arg("p5");
-       message += "&p6="+server.arg("p6");
-       message += "&p7="+server.arg("p7");
-       message += "&p8="+server.arg("p8");
-       message += ">";
+  mTimes=millis();
+  
+  float v1=server.arg("p1").toFloat();
+  float v2=server.arg("p2").toFloat();
+  float v3=server.arg("p3").toFloat();
+  float v4=server.arg("p4").toFloat();
+  float v5=server.arg("p5").toFloat();
+  float v6=server.arg("p6").toFloat();
+  float v7=server.arg("p7").toFloat();
+  float v8=server.arg("p8").toFloat();
+  
+  String message = "Plant<br>P1:";
+         message += toString(v1,2);
+         message += "<br>P2:";
+         message += toString(v2,2);
+         message += "<br>P3:";
+         message += toString(v3,2);
+         message += "<br>P4:"; 
+         message += toString(v4,2);
+         message += "<br>P5:";
+         message += toString(v5,2);
+         message += "<br>P6:";
+         message += toString(v6,2);
+         message += "<br>P7:";    
+         message += toString(v7,2);
+         message += "<br>P8:";
+         message += toString(v8,2);
+  
+  
+         message += "<meta http-equiv='refresh' content=0;URL=../";
+         message += "?p1="+server.arg("p1");
+         message += "&p2="+server.arg("p2");
+         message += "&p3="+server.arg("p3");
+         message += "&p4="+server.arg("p4");
+         message += "&p5="+server.arg("p5");
+         message += "&p6="+server.arg("p6");
+         message += "&p7="+server.arg("p7");
+         message += "&p8="+server.arg("p8");
+         message += ">";
           
   server.send(200, "text/html", message);
   // A (1-3)
@@ -313,7 +306,8 @@ float v8=server.arg("p8").toFloat();
   p2=pumping(v2, pump2,pump2r, pump2n, pump2p);
   p3=pumping(v3, pump3,pump3r, pump3n, pump3p);
   RawEndA=readScalesWithCheck(255);   
-// B (4-8)
+  
+  // B (4-8)
   scale.set_scale(scale_calibration_B); //B side 
   RawStartB=RawEndA; 
   p4=pumping(v4, pump4,pump4r, pump4n, pump4p);
@@ -324,35 +318,36 @@ float v8=server.arg("p8").toFloat();
   RawEndB=readScalesWithCheck(255); 
  
   wstatus="Ready";
-
-WiFiClient client;
-HTTPClient http;
-String httpstr=WegaApiUrl;
-httpstr +=  "?p1=" + toString(p1,3);
-httpstr +=  "&p2=" + toString(p2,3);
-httpstr +=  "&p3=" + toString(p3,3);
-httpstr +=  "&p4=" + toString(p4,3);
-httpstr +=  "&p5=" + toString(p5,3);
-httpstr +=  "&p6=" + toString(p6,3);
-httpstr +=  "&p7=" + toString(p7,3);
-httpstr +=  "&p8=" + toString(p8,3);
-
-httpstr +=  "&v1=" + toString(v1,3);
-httpstr +=  "&v2=" + toString(v2,3);
-httpstr +=  "&v3=" + toString(v3,3);
-httpstr +=  "&v4=" + toString(v4,3);
-httpstr +=  "&v5=" + toString(v5,3);
-httpstr +=  "&v6=" + toString(v6,3);
-httpstr +=  "&v7=" + toString(v7,3);
-httpstr +=  "&v8=" + toString(v8,3);
-
-
-http.begin(client, httpstr);
-http.GET();
-http.end();
-
-delay (10000);
-lcd.clear();
+  eTimes=millis()-mTimes;
+  
+  WiFiClient client;
+  HTTPClient http;
+  String httpstr=WegaApiUrl;
+  httpstr +=  "?p1=" + toString(p1,3);
+  httpstr +=  "&p2=" + toString(p2,3);
+  httpstr +=  "&p3=" + toString(p3,3);
+  httpstr +=  "&p4=" + toString(p4,3);
+  httpstr +=  "&p5=" + toString(p5,3);
+  httpstr +=  "&p6=" + toString(p6,3);
+  httpstr +=  "&p7=" + toString(p7,3);
+  httpstr +=  "&p8=" + toString(p8,3);
+  
+  httpstr +=  "&v1=" + toString(v1,3);
+  httpstr +=  "&v2=" + toString(v2,3);
+  httpstr +=  "&v3=" + toString(v3,3);
+  httpstr +=  "&v4=" + toString(v4,3);
+  httpstr +=  "&v5=" + toString(v5,3);
+  httpstr +=  "&v6=" + toString(v6,3);
+  httpstr +=  "&v7=" + toString(v7,3);
+  httpstr +=  "&v8=" + toString(v8,3);
+  
+  
+  http.begin(client, httpstr);
+  http.GET();
+  http.end();
+  
+  delay (10000);
+  lcd.clear();
 }
 
 
@@ -391,17 +386,17 @@ float PumpStart(int npump,int npumpr) {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
   mcp.digitalWrite(npump, HIGH);mcp.digitalWrite(npumpr, LOW);
-  }
+}
 float PumpStop(int npump,int npumpr) {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, LOW);
-  }
+}
 float PumpReverse(int npump,int npumpr) {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT); mcp.pinMode(npumpr, OUTPUT);
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
-  }
+}
 
 
 void pumpToValue(float capValue, float capMillis, float targetValue, int npump,int npumpr) {
@@ -412,7 +407,18 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   long endMillis = millis() + capMillis;
   float maxValue = value;
   PumpStart(npump,npumpr);
-  while (value < capValue && millis() < endMillis && value > maxValue - 0.1) { 
+  char exitCode;
+  while (true) { 
+    if (value >= capValue) {
+      exitCode = 'V'; // вес достиг заданный
+      break;
+    } else if (millis() >= endMillis) {
+      exitCode = 'T'; // истекло время
+      break;
+    } else if (value < maxValue - 0.1) {
+      exitCode = 'E'; // аномальные показания весов
+      break;
+    }
     readScales(1);
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
@@ -425,13 +431,14 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
     yield();
   }
   PumpStop(npump,npumpr);
+  lcd.setCursor(15, 1);lcd.print(exitCode);
 }
 
 // Функция налива
 // Function: pour solution
 float pumping(float wt, int npump,int npumpr, String nm, int preload) {
-wstatus="Worked...";
-wpomp=nm;
+  wstatus="Worked...";
+  wpomp=nm;
 
   server.handleClient();
 
@@ -475,17 +482,19 @@ wpomp=nm;
   // до конечного веса минус 0.5 грамм по половине от остатка 
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Fast...");
   float performance = 0.0007;
-  float valueToPump;
-  while ((valueToPump = wt - 0.5 - value) > 0) {
-    if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
-    long timeToPump = valueToPump / performance;           // ограниечение по времени
-    long startTime = millis();
-    pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr);
-    long endTime = millis();
-    value = rawToUnits(readScalesWithCheck(128));
-    if (endTime - startTime > 200 && value-curvol > 0.15) performance = max(performance, (value - curvol) / (endTime - startTime));
-    curvol=value;
-    server.handleClient();
+  float valueToPump = wt - 0.5 - value;
+  if (valueToPump > 0.4) {
+    while ((valueToPump = wt - 0.5 - value) > 0) {
+      if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
+      long timeToPump = valueToPump / performance;           // ограничение по времени
+      long startTime = millis();
+      pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr);
+      long endTime = millis();
+      value = rawToUnits(readScalesWithCheck(128));
+      if (endTime - startTime > 200 && value-curvol > 0.15) performance = max(performance, (value - curvol) / (endTime - startTime));
+      curvol=value;
+      server.handleClient();
+    }
   }
   
   // капельный налив
