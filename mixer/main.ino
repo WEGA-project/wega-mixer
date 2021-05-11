@@ -406,6 +406,8 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   }
   long endMillis = millis() + capMillis;
   float maxValue = value;
+  float allowedMeasurementError = isnan(targetValue) ? 0.1 : 1.5;//min(0.5, max(1.3, (targetValue - capValue) * 0.1));
+  
   PumpStart(npump,npumpr);
   char exitCode;
   while (true) { 
@@ -415,7 +417,7 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
     } else if (millis() >= endMillis) {
       exitCode = 'T'; // истекло время
       break;
-    } else if (value < maxValue - 0.1) {
+    } else if (value < maxValue - allowedMeasurementError) {
       exitCode = 'E'; // аномальные показания весов
       break;
     }
@@ -483,7 +485,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Fast...");
   float performance = 0.0007;
   float valueToPump = wt - 0.5 - value;
-  if (valueToPump > 0.4) {
+  if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
     while ((valueToPump = wt - 0.5 - value) > 0) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
       long timeToPump = valueToPump / performance;           // ограничение по времени
