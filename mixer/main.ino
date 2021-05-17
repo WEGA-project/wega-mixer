@@ -3,17 +3,27 @@
 ///////////////////////////////////////////////////////////////////
 #define FW_version  "1.050"
 
+
+#ifdef board_ESP32
+#define board "ESP32"
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ESPmDNS.h>
+#include <HTTPClient.h>
+WebServer server(80);
+#else
+#define board "ESP8266"
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-ESP8266WebServer server(80);
+#include <ESP8266HTTPClient.h>
+ESP8266WebServer server(80)
+#endif
 
 #include <WiFiClient.h>
-#include <ESP8266HTTPClient.h>
-
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+#include <WiFiClient.h>
 
 #include <Wire.h>
 #include "src/Adafruit_MCP23017/Adafruit_MCP23017.h"
@@ -40,6 +50,13 @@ Adafruit_MCP23017 mcp;
 #define B5 13
 #define B6 14
 #define B7 15
+
+#ifdef board_ESP32
+#define D1 19
+#define D2 18
+#define D5 16
+#define D6 17
+#endif
 
 #include "src/LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 LiquidCrystal_I2C lcd(0x27,16,2); // Check I2C address of LCD, normally 0x27 or 0x3F
