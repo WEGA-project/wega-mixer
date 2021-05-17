@@ -11,13 +11,12 @@
 //////////////////////////////////////////////////////////////
 
 // WiFi network configuration
-const char* ssid = "OpenWRT12";
-const char* password = "kstk1613pkt8";
-
+const char* ssid = "YOUR_WIFI_NETWORK_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
 
 // scale_calibration, side A and B
-float scale_calibration_A = 869.9170;
-float scale_calibration_B = 869.9170;
+float scale_calibration_A = 2030;
+float scale_calibration_B = 2030;
 
 //
 
