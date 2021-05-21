@@ -570,5 +570,5 @@ float rawToUnits(float raw) {
 }
 
 float rawToUnits(float raw, float calibrationPoint) {
-  return (raw - calibrationPoint) / scale.get_scale();
+  return (raw - scale.get_offset()) / calibrationPoint;
 }
