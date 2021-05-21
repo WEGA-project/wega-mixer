@@ -431,6 +431,7 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
     }
     lcd.print("  ");
     yield();
+    server.handleClient();
   }
   PumpStop(npump,npumpr);
   lcd.setCursor(15, 1);lcd.print(exitCode);
@@ -459,16 +460,20 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
   PumpReverse(npump,npumpr);
   delay(preload);
   PumpStop(npump,npumpr);
+  server.handleClient();
   
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Tare...");
   float value = 0;
   tareScalesWithCheck(255);
+  server.handleClient();
   
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
   lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
   PumpStart(npump,npumpr);
   delay(preload);
   PumpStop(npump,npumpr);
+  server.handleClient();
+
   value = rawToUnits(readScalesWithCheck(128));
   server.handleClient();
   
