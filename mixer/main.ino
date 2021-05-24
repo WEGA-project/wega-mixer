@@ -299,6 +299,9 @@ void st() {
          message += ">";
           
   server.send(200, "text/html", message);
+
+  float offsetBeforePump = scale.get_offset();
+  
   // A (1-3)
   scale.set_scale(scale_calibration_A); //A side
   RawStartA=readScalesWithCheck(255);
@@ -316,7 +319,8 @@ void st() {
   p7=pumping(v7, pump7,pump7r, pump7n, pump7p);
   p8=pumping(v8, pump8,pump8r, pump8n, pump8p); 
   RawEndB=readScalesWithCheck(255); 
- 
+  
+  scale.set_offset(offsetBeforePump);
   wstatus="Ready";
   eTimes=millis()-mTimes;
   
@@ -399,15 +403,14 @@ float PumpReverse(int npump,int npumpr) {
 }
 
 
-void pumpToValue(float capValue, float capMillis, float targetValue, int npump,int npumpr) {
+void pumpToValue(float capValue, float capMillis, float targetValue, int npump,int npumpr, float allowedMeasurementError) {
   float value = rawToUnits(filter.getEstimation());
   if (value >= capValue) {
     return;
   }
+  
   long endMillis = millis() + capMillis;
   float maxValue = value;
-  float allowedMeasurementError = isnan(targetValue) ? 0.1 : 1.5;//min(0.5, max(1.3, (targetValue - capValue) * 0.1));
-  
   PumpStart(npump,npumpr);
   char exitCode;
   while (true) { 
@@ -480,7 +483,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
   // до первой капли
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload2...");
   while (value < 0.02 && wt > 0.5 ) {
-    pumpToValue(0.03, preload, NAN, npump, npumpr);
+    pumpToValue(0.03, preload, NAN, npump, npumpr, 0.1);
     value = rawToUnits(readScalesWithCheck(128));
     curvol=value;
     server.handleClient();
@@ -495,7 +498,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long startTime = millis();
-      pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr);
+      pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr, 1.5);
       long endTime = millis();
       value = rawToUnits(readScalesWithCheck(128));
       if (endTime - startTime > 200 && value-curvol > 0.15) performance = max(performance, (value - curvol) / (endTime - startTime));
@@ -506,39 +509,40 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
   
   // капельный налив
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Drop...");
-  float pvalue = value,sk = 25;
-  while ( value < wt-0.01 ) {
+  float prevValue = value;
+  int sk = 25;
+  while (value < wt - 0.01) {
     lcd.setCursor(0, 1);
-    lcd.print(value,2);
+    lcd.print(value, 2);
     lcd.print(" (");
-    lcd.print(100-(wt-value)/wt*100,0);
+    lcd.print(value / wt * 100, 0);
     lcd.print("%) ");
-    lcd.print(sk,0);
+    lcd.print(sk);
     lcd.print("ms     ");
       
-    if (value-pvalue < 0.01) {if (sk<80){sk=sk+2;}}
-    if (value-pvalue > 0.01) {if (sk>2) {sk=sk-2;}}
-    if (value-pvalue > 0.1 ) {sk=0;}
+    if (value - prevValue < 0.01) {sk = min(80, sk+2);}
+    if (value - prevValue > 0.01) {sk = max(2, sk-2);}
+    if (value - prevValue > 0.1 ) {sk = 0;}
 
-    pvalue=value;
+    prevValue = value;
     PumpStart(npump,npumpr);
-    delay (sk);
+    delay(sk);
     PumpStop(npump,npumpr);
 
     server.handleClient();
-    delay (100);
-    value=rawToUnits(readScalesWithCheck(128));
-    curvol=value;
+    delay(100);
+    value = rawToUnits(readScalesWithCheck(128));
+    curvol = value;
   }
 
   lcd.setCursor(0, 1);
-  lcd.print(toString(value,2));
+  lcd.print(toString(value, 2));
   lcd.print(" (");
-  lcd.print(100-(wt-value)/wt*100,2);
+  lcd.print(value/wt*100, 2);
   lcd.print("%)      ");
-  PumpReverse(npump,npumpr);
-  delay (preload*2);
-  PumpStop(npump,npumpr);
+  PumpReverse(npump, npumpr);
+  delay(preload * 2);
+  PumpStop(npump, npumpr);
     
   return value;
 }
@@ -556,13 +560,14 @@ float readScales(int times) {
 }
 
 float readScalesWithCheck(int times) {
+  float value1 = readScales(times / 2);
   while (true) {
-    float value1 = readScales(times / 2);
     delay(20);
     float value2 = readScales(times / 2);
     if (fabs(value1 - value2) < (0.01 * scale_calibration_A)) {
       return (value1 + value2) / 2;
     }
+    value1 = value2;
   }
 }
 
