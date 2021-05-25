@@ -408,12 +408,14 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   if (value >= capValue) {
     return;
   }
-  
   long endMillis = millis() + capMillis;
   float maxValue = value;
   PumpStart(npump,npumpr);
   char exitCode;
   while (true) { 
+    server.handleClient();
+    yield();
+
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
       break;
@@ -432,17 +434,17 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
     if (!isnan(targetValue)) {
       lcd.print(" ("); lcd.print(toString(value/targetValue*100,1)); lcd.print("%)");
     }
-    lcd.print("  ");
+    lcd.print("    ");
     yield();
-    server.handleClient();
   }
   PumpStop(npump,npumpr);
   lcd.setCursor(15, 1);lcd.print(exitCode);
 }
 
+
 // Функция налива
 // Function: pour solution
-float pumping(float wt, int npump,int npumpr, String nm, int preload) {
+float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
   wstatus="Worked...";
   wpomp=nm;
 
@@ -457,44 +459,52 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
     return 0;
   }
 
-  // Продувка
-  // Mix the solution
-  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
-  PumpReverse(npump,npumpr);
-  delay(preload);
-  PumpStop(npump,npumpr);
-  server.handleClient();
-  
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Tare...");
   float value = 0;
   tareScalesWithCheck(255);
   server.handleClient();
-  
-  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
-  lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
-  PumpStart(npump,npumpr);
-  delay(preload);
-  PumpStop(npump,npumpr);
-  server.handleClient();
 
-  value = rawToUnits(readScalesWithCheck(128));
-  server.handleClient();
-  
-  // до первой капли
-  lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload2...");
-  while (value < 0.02 && wt > 0.5 ) {
-    pumpToValue(0.03, preload, NAN, npump, npumpr, 0.1);
-    value = rawToUnits(readScalesWithCheck(128));
-    curvol=value;
+  int preload;
+  if (wt < 0.5) { // статический прелоад
+    preload = staticPreload;
+    lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Reverse...");
+    PumpReverse(npump,npumpr);
+    delay(preload);
+    PumpStop(npump,npumpr);
     server.handleClient();
+  
+    lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
+    lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
+    PumpStart(npump,npumpr);
+    delay(preload);
+    PumpStop(npump,npumpr);
+    server.handleClient();
+
+    value = rawToUnits(readScalesWithCheck(128));
+    server.handleClient();
+  } else { // прелоад до первой капли
+    lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
+    preload = 0;
+    while (value < 0.02) {
+      long startTime = millis();
+      pumpToValue(0.03, staticPreload * 2, NAN, npump, npumpr, 0.1);
+      preload += millis() - startTime;
+      value = rawToUnits(readScalesWithCheck(128));
+      curvol=value;
+      server.handleClient();
+    }
+    lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
+    delay(1000);
   }
   
-  // до конечного веса минус 0.5 грамм по половине от остатка 
+  // до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
   lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);lcd.print(" Fast...");
   float performance = 0.0007;
-  float valueToPump = wt - 0.5 - value;
+  float dropTreshold = wt - value > 1.0 ? 0.2 : 0.5; // определяет сколько оставить на капельный налив
+  float valueToPump = wt - dropTreshold - value;
+  
   if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
-    while ((valueToPump = wt - 0.5 - value) > 0) {
+    while ((valueToPump = wt - dropTreshold - value) > 0) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long startTime = millis();
@@ -540,8 +550,14 @@ float pumping(float wt, int npump,int npumpr, String nm, int preload) {
   lcd.print(" (");
   lcd.print(value/wt*100, 2);
   lcd.print("%)      ");
+
+  // реверс, высушить трубки
   PumpReverse(npump, npumpr);
-  delay(preload * 2);
+  long endPreloadTime = millis() + max(preload, staticPreload) * 1.5; 
+  while (millis() < endPreloadTime) {
+      server.handleClient();
+      delay(1);
+  }
   PumpStop(npump, npumpr);
     
   return value;
