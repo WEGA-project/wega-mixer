@@ -402,6 +402,15 @@ float PumpReverse(int npump,int npumpr) {
   mcp.digitalWrite(npump, LOW);mcp.digitalWrite(npumpr, HIGH);
 }
 
+void printValueAndPercent(float value, float targetValue) {
+    lcd.setCursor(0, 1); 
+    lcd.print(toString(value, 2)); 
+    if (!isnan(targetValue)) {
+      lcd.print(" ("); lcd.print(toString(value/targetValue*100,1)); lcd.print("%)");
+    }
+    lcd.print("    ");
+    yield();
+}
 
 void pumpToValue(float capValue, float capMillis, float targetValue, int npump,int npumpr, float allowedMeasurementError) {
   float value = rawToUnits(filter.getEstimation());
@@ -412,6 +421,7 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   float maxValue = value;
   PumpStart(npump,npumpr);
   char exitCode;
+  long i = 0;
   while (true) { 
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
@@ -428,15 +438,10 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
     readScales(1);
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
-    lcd.setCursor(0, 1);
-    lcd.print(toString(value, 2)); 
-    if (!isnan(targetValue)) {
-      lcd.print(" ("); lcd.print(toString(value/targetValue*100,1)); lcd.print("%)");
-    }
-    lcd.print("    ");
-    yield();
+    if (i % 5 == 0) printValueAndPercent(value, targetValue);
   }
   PumpStop(npump,npumpr);
+  printValueAndPercent(value, targetValue);
   lcd.setCursor(15, 1);lcd.print(exitCode);
 }
 
