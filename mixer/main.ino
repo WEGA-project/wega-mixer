@@ -413,9 +413,6 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   PumpStart(npump,npumpr);
   char exitCode;
   while (true) { 
-    server.handleClient();
-    yield();
-
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
       break;
@@ -426,6 +423,8 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
       exitCode = 'E'; // аномальные показания весов
       break;
     }
+    server.handleClient();
+    delay(2);
     readScales(1);
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
@@ -454,8 +453,8 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
     lcd.setCursor(0, 0); lcd.print(nm);lcd.print(":");lcd.print(wt);
     lcd.setCursor(10, 0);
     lcd.print("SKIP..   ");
-    delay (1000);
     server.handleClient();
+    delay (1000);
     return 0;
   }
 
@@ -463,6 +462,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
   float value = 0;
   tareScalesWithCheck(255);
   server.handleClient();
+  delay(10);
 
   int preload;
   if (wt < 0.5) { // статический прелоад
@@ -472,6 +472,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
     delay(preload);
     PumpStop(npump,npumpr);
     server.handleClient();
+    delay(10);
   
     lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
     lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
@@ -479,9 +480,11 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
     delay(preload);
     PumpStop(npump,npumpr);
     server.handleClient();
+    delay(10);
 
     value = rawToUnits(readScalesWithCheck(128));
     server.handleClient();
+    delay(10);
   } else { // прелоад до первой капли
     lcd.clear(); lcd.setCursor(0, 0); lcd.print(nm);lcd.print(" Preload...");
     preload = 0;
@@ -492,6 +495,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
       value = rawToUnits(readScalesWithCheck(128));
       curvol=value;
       server.handleClient();
+      delay(10);
     }
     lcd.setCursor(0, 1);lcd.print(" Preload=");lcd.print(preload);lcd.print("ms");
     delay(1000);
@@ -502,18 +506,19 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
   float performance = 0.0007;
   float dropTreshold = wt - value > 1.0 ? 0.2 : 0.5; // определяет сколько оставить на капельный налив
   float valueToPump = wt - dropTreshold - value;
-  
+  float allowedOscillation = valueToPump < 1.0 ? 1.5 : 3.0;  // допустимое раскачивание, чтобы остановитmся при помехах/раскачивании, важно на малых объемах  
   if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
     while ((valueToPump = wt - dropTreshold - value) > 0) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long startTime = millis();
-      pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr, 1.5);
+      pumpToValue(curvol + valueToPump, timeToPump, wt, npump, npumpr, allowedOscillation);
       long endTime = millis();
       value = rawToUnits(readScalesWithCheck(128));
       if (endTime - startTime > 200 && value-curvol > 0.15) performance = max(performance, (value - curvol) / (endTime - startTime));
       curvol=value;
       server.handleClient();
+      delay(10);
     }
   }
   
@@ -556,7 +561,7 @@ float pumping(float wt, int npump,int npumpr, String nm, int staticPreload) {
   long endPreloadTime = millis() + max(preload, staticPreload) * 1.5; 
   while (millis() < endPreloadTime) {
       server.handleClient();
-      delay(1);
+      delay(10);
   }
   PumpStop(npump, npumpr);
     
