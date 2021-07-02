@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "1.1"
+#define FW_version  "1.11"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -52,7 +52,7 @@ HX711 scale;
 //Коэффициенты фильтрации Кальмана
 float Kl1=0.1, Pr1=0.0001, Pc1=0.0, G1=1.0, P1=0.0, Xp1=0.0, Zp1=0.0, Xe1=0.0;
 
-float p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
+float s,p1,p2,p3,p4,p5,p6,p7,p8,fscl,curvol;
 float RawStartA,RawEndA,RawStartB,RawEndB;
 String wstatus,wpomp;
 float mTimes, eTimes;
@@ -115,7 +115,7 @@ void handleRoot() {
   {message = " Work pomp: " + wpomp + "<br>Current vol: " + fFTS(curvol,2) + "g";
    message += "<br>Timer = " + fFTS( (millis()-mTimes)/1000 ,0) + " sec";
   }
-
+  
 float p1f=server.arg("p1").toFloat(), p1c=(p1-p1f)/p1f*100;
 float p2f=server.arg("p2").toFloat(), p2c=(p2-p2f)/p2f*100;
 float p3f=server.arg("p3").toFloat(), p3c=(p3-p3f)/p3f*100;
@@ -147,7 +147,7 @@ message += "<p>P8 = <input type='text' name='p8' value='" + server.arg("p8") + "
 
 if (wstatus == "Ready" )  
  { 
-
+   s=server.arg("s").toFloat();
    message += "<p><input type='submit' class='button' value='Start'/>  ";
    message += "<input type='button' class='button' onclick=\"window.location.href = 'scales';\" value='Scales'/>  ";
    message += "<input type='button' class='button' onclick=\"window.location.href = 'calibrate';\" value='Calibrate'/>";
@@ -277,7 +277,6 @@ float v8=server.arg("p8").toFloat();
        message += "<br>P8:";
        message += fFTS(v8,2);
 
-
        message += "<meta http-equiv='refresh' content=0;URL=../";
        message += "?p1="+server.arg("p1");
        message += "&p2="+server.arg("p2");
@@ -337,6 +336,7 @@ httpstr +=  "&v6=" + fFTS(v6,3);
 httpstr +=  "&v7=" + fFTS(v7,3);
 httpstr +=  "&v8=" + fFTS(v8,3);
 
+httpstr +=  "&s=" + fFTS(s,0);
 
 http.begin(client, httpstr);
 http.GET();
@@ -530,16 +530,21 @@ int SpeedMid=4; // Число усреднений ацп при быстром 
 float Drops_Pr1=0.0001;  // Для капельного налива
 float psize=0.02; // Примерный вес капли в граммах для адаптивного режима (зависит от выхода трубки)
 float atime=5; // Значение в мс плюс и минус для адаптивного режима
-float pgramm=0.5; // Значение в граммах при меньше которого не используется адаптивный прелоад
+float pgramm=2; // Значение в граммах при меньше которого не используется адаптивный прелоад
 
 
 wstatus="Worked...";
 wpomp=nm; 
 float value=0; 
-tareScalesWithCheck(255);
 curvol=value;
 server.handleClient();
-if (wt > 0 ){
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(nm);
+      lcd.print(":");
+      lcd.print(wt);
+if (wt > psize ){
+tareScalesWithCheck(255);
 
 // Прелоад
 wstatus="Worked, preload...";
@@ -558,7 +563,9 @@ while (value<0.3 ){
   value = scale.get_units(8);
       lcd.setCursor(0, 0);
       lcd.print(nm);
-      lcd.print(" Preload...");
+      lcd.print(":");
+      lcd.print(wt);
+      lcd.print(" Pre...");
       lcd.setCursor(0, 1);
       lcd.print(value, 1);
       lcd.print("g      ");
@@ -571,6 +578,8 @@ else // если налить мало, то делаем сперва реве�
 {
         lcd.setCursor(0, 0);
       lcd.print(nm);
+      lcd.print(":");
+      lcd.print(wt);
       lcd.print(" SPreload...");
  PumpReverse(npump,npumpr);
 delay (preload);
@@ -588,6 +597,8 @@ while (value < wt-SpeedWeight) {
         server.handleClient();
               lcd.setCursor(0, 0);
               lcd.print(nm);
+              lcd.print(":");
+              lcd.print(wt);
               lcd.print(" Speed pump...");
               lcd.setCursor(0, 1);
               lcd.print(value, 2);
@@ -630,7 +641,9 @@ while (value < wt-psize) {
   float v0=value;
       lcd.setCursor(0, 0);
       lcd.print(nm);
-      lcd.print(" Drops pump...");
+      lcd.print(":");
+      lcd.print(wt);
+      lcd.print(" Drops...");
       lcd.setCursor(0, 1);
       lcd.print(value, 2);
       lcd.print("g ");
@@ -744,4 +757,5 @@ float unitsToRaw(float units) {
 float rawToUnits(float raw) {
   return (raw - scale.get_offset()) / scale.get_scale();
 }
+
 
