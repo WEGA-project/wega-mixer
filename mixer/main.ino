@@ -421,7 +421,7 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
   float maxValue = value;
   PumpStart(npump,npumpr);
   char exitCode;
-  long i = 0;
+  int i = 0;
   while (true) { 
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
@@ -434,11 +434,11 @@ void pumpToValue(float capValue, float capMillis, float targetValue, int npump,i
       break;
     }
     server.handleClient();
-    delay(2);
     readScales(1);
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
-    if (i % 5 == 0) printValueAndPercent(value, targetValue);
+    if (i % 10 == 0) printValueAndPercent(value, targetValue);
+    i++;
   }
   PumpStop(npump,npumpr);
   printValueAndPercent(value, targetValue);
@@ -588,6 +588,7 @@ float readScales(int times) {
 float readScalesWithCheck(int times) {
   float value1 = readScales(times / 2);
   while (true) {
+    server.handleClient();
     delay(20);
     float value2 = readScales(times / 2);
     if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A)) {
