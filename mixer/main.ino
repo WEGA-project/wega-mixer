@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-#define FW_version  "2.0.1 igor"
+#define FW_version  "2.0.2 igor"
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
