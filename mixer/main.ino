@@ -104,6 +104,7 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {delay(500);}
   lcd.setCursor(0, 1); 
   lcd.print(WiFi.localIP()); 
+
   MDNS.begin("mixer");
   MDNS.addService("http", "tcp", 80);
   server.on("/rest/events",  handleSubscribe);
@@ -133,6 +134,7 @@ void setup() {
   scale.power_up();
   delay (3000);
   tareScalesWithCheck(255);  
+  
   lcd.clear();
   setState(STATE_READY);
 }
@@ -144,7 +146,6 @@ void loop() {
   server.handleClient();
   ArduinoOTA.handle();
   MDNS.update();
-  
   if (lastSentTime + 1000 < millis()) sendScalesValue();
 }
 
@@ -551,33 +552,14 @@ float readScalesWithCheck(int times) {
     }
     value1 = value2;
   }
-  src += ']';
-  if (!last)
-    src += ',';
 }
 
 void tareScalesWithCheck(int times) {
   scale.set_offset(readScalesWithCheck(times));
 }
 
-void sendEvent(const __FlashStringHelper *name, int bufSize, void (*appendPayload)(String &))
-{
-  if (!checkConnected())
-    return;
-  lastSentTime = millis();
-  String message((char *)0);
-  message.reserve(bufSize);
-  message += F("event:");
-  message += name;
-  message += F("\ndata:{");
-  appendPayload(message);
-  message += F("}\n\n");
-
-  for (byte i = 0; i < SSE_MAX_CHANNELS; i++)
-  {
-    if (subscription[i] && subscription[i].connected())
-      subscription[i].print(message);
-  }
+float rawToUnits(float raw) {
+  return (raw - scale.get_offset()) / scale.get_scale();
 }
 
 // функции для генерации json
