@@ -619,7 +619,6 @@ void wait(unsigned long ms, int step)
     ping();
     delay(step);
   }
-  return value;
 }
 
 // Функции для работы с весами
