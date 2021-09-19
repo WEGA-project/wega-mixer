@@ -22,7 +22,7 @@ float scale_calibration_B = 2030;
 #define KALMAN true
 
 // Setting WEGA-API
-#define WegaApiUrl "http://192.168.237.107/remote/mixerdb.php"
+#define WegaApiUrl "http://192.168.237.107/wega-api/mixerdb.php"
 
 // Pump #1
 #define pump1  A0        // Port 1
