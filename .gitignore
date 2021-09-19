@@ -7,3 +7,9 @@
 
 # Local History for Visual Studio Code
 .history/
+
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
