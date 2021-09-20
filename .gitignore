@@ -1,17 +1,17 @@
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
+# vscode ignore files
+.vscode
+.history/
+
+# Platformio ignore files
+.pio
 
 # Local History for Visual Studio Code
 .history/
-
 
 # General
 .DS_Store
 .AppleDouble
 .LSOverride
 
-.pio
+# Project ignore files
+config.h
