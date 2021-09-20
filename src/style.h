@@ -1,7 +1,3 @@
-ESP8266WebServer server(80);
-State state;
-void setState(State s);
-
 const char CSS_page[] PROGMEM = R"=====(
 .button { width:105px; height:26px; font-size:0.8em; }
 form {

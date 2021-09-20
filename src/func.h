@@ -4,7 +4,6 @@
 WiFiClient subscription[SSE_MAX_CHANNELS];
 unsigned long lastSentTime = 0;
 
-
 // server sent events
 bool checkConnected() {
   bool result = false;

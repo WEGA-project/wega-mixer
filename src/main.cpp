@@ -87,6 +87,9 @@ unsigned long sTime, eTime;
 Adafruit_MCP23017 mcp;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
 HX711 scale;
+ESP8266WebServer server(80);
+State state;
+void setState(State s);
 
 #include <func.h>
 
