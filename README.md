@@ -78,7 +78,7 @@
 <a name="mixer"></a>
 
 ### Скачать проект WEGA-Mixer
-Скачать проект можно несколькими путями, самый просто это скачать архив со страницы релизов. Последний стабильный релиз можно найти [здесь](https://github.com/WEGA-project/WEGA-Mixer/releases)
+Скачать проект можно несколькими путями, самый просто это скачать архив со страницы релизов. Последний стабильный релиз можно найти [здесь](https://github.com/WEGA-project/WEGA-Mixer/releases).
 
 Важно!!! Релиз ниже `v2.2.0` предназначены для сбора прошивки под `Arduino IDE` и не работают с `vscode` и `platformio`.
 
@@ -94,11 +94,11 @@
 <a name="connections"></a>
 
 ### Подключение по схеме компонентов для миксера
-Здесь можно видеть текущую схему подключения
+Здесь можно видеть текущую схему подключения.
 
 <a href="images/connection_diagramm.png"><img src="images/connection_diagramm.png" width="250"></a>
 
-Здесь находится [диаграмма](scheme)
+Здесь находится [диаграмма](scheme).
 
 <a name="important-connections"></a>
 
@@ -115,25 +115,25 @@
 
 ### Установка Visual Studio Code (vscode) и прошивка
 #### Шаг 1
-Скачать и установить [vscode](https://code.visualstudio.com/download)
+Скачать и установить [vscode](https://code.visualstudio.com/download).
 
 #### Шаг 2
-Запускаем `vscode`  идем в `extensions` и устанавливаем `platformio`
+Запускаем `vscode`  идем в `extensions` и устанавливаем `platformio`.
 
 <a href="images/pio-ext.png"><img src="images/pio-ext.png" width="250"></a>
 
 #### Шаг 3
 
-Открываем папку с проектом
+Открываем папку с проектом.
 
 <a href="images/pio-open-project.png"><img src="images/pio-open-project.png" width="250"></a>
 
 #### Шаг 4
-Копируем файл `src/config.h.rename` вставляем в ту же папку и переименовываем новый файл в `config.h`
+Копируем файл `src/config.h.rename` вставляем в ту же папку и переименовываем новый файл в `config.h`.
 
 <a href="images/pio-config.png"><img src="images/pio-config.png" width="250"></a>
 
-Открываем  `config.h`
+Открываем  `config.h`.
 
 - Обновляем `ssid` - имя вашей сети 
 - Обновляем `password` - пароль для вашего WiFi
@@ -158,11 +158,11 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 <a href="images/pio-build.png"><img src="images/pio-build.png" width="250"></a>
 
-Если все хорошо, то в терминале будет что-то подобное
+Если все хорошо, то в терминале будет что-то подобное.
 
 <a href="images/pio-build-success.png"><img src="images/pio-build-success.png" width="250"></a>
 
-Если в терминале видим `SUCCESS` то подключаем `ESP8266` через консольный кабель
+Если в терминале видим `SUCCESS` то подключаем `ESP8266` через консольный кабель.
 
 <a name="usb"></a>
 
@@ -170,16 +170,16 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 <a href="images/pio-upload.png"><img src="images/pio-upload.png" width="250"></a>
 
-В большинстве случаев `platformio` найдет подключеное устроиство через консольный кабель автоматически
+В большинстве случаев `platformio` найдет подключеное устроиство через консольный кабель автоматически.
 
-При условии, что сборка компонентов была выполнена правильно то как только прошивка будет загружена на плату и произойдет перезагрузка, на экране должна появится надпись `Ready`
+При условии, что сборка компонентов была выполнена правильно, то как только прошивка будет загружена на плату и произойдет перезагрузка, на экране должна появится надпись `Ready`.
 
 <a href="images/screen_ready.png"><img src="images/screen_ready.png" width="250"></a>
 
 <a name="ota"></a>
 
 #### Прошивка по Wi-Fi
-В дальнейшем, если будет желание или необходимость перепрошивки `ESP` это можно будет сделать через Wi-Fi
+В дальнейшем, если будет желание или необходимость перепрошивки `ESP` это можно будет сделать через Wi-Fi.
 
 Для этого нужно будет раскоментировать строчку в `platformio.ini` и указать свой `IP` адрес миксера, адрес можно видеть каждый раз на экране миксера при включении.
 
