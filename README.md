@@ -30,9 +30,7 @@
 <!--te-->
 
 ---
-<a name="what_to_know"></a>
-
-### Минимальные требования и знания
+### Минимальные требования и знания <a name="what_to_know"></a>
 
 Для того, чтобы собрать этот миксер необходимо:
 
@@ -175,11 +173,9 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 
 ---
-<a name="scale-calibration"></a>
-### Калибровка весов/стола
+### Калибровка весов/стола <a name="scale-calibration"></a>
 
-<a name="auto-calibration"></a>
-#### Полу-автоматическая калибровка
+#### Полу-автоматическая калибровка <a name="auto-calibration"></a>
 
 Мы постарались, минимизировать ручной труд и время потраченное для калибровки весов.
 
@@ -207,8 +203,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 Как только вы получили значение `scale_calibration` записываем его в файл `src/config.h` в поле `scale_calibration_B`, сохраняем файл и заливаем прошивку
 
-<a name="manual-calibration"></a>
-#### Ручная калибровка
+#### Ручная калибровка <a name="manual-calibration"></a>
 
 1. Нужно взять точно известный вес в районе 500 грамм
 2. Отметить две точки на которых будут стоять бутылки(стаканы) А и B
@@ -262,8 +257,7 @@ float scale_calibration_B = 2043.65;
 Заливаем прошивку как описано здесь [Прошивка по Wi-Fi](#ota) или через [консоль](#usb) 
 
 ---
-<a name="important"></a>
-### Важно
+### Важно <a name="important"></a>
 
 Есть несколько ньюансов, которые необходио учитывать.
 
@@ -274,8 +268,7 @@ float scale_calibration_B = 2043.65;
 <a href="images/small_portions.png"><img src="images/small_portions.png" width="250"></a>
 
 ---
-<a name="help"></a>
-### Где искать помощь
+### Где искать помощь <a name="help"></a>
 
 Если у вас все еще есть вопросы по настройке, заливке и гонфигурированни этого дозера/миксера, 
 то их всегда можно задать в официальном телеграмм канале [WEGA-Mixer](https://t.me/joinchat/A44FpRjsKccBaBKLWnp1fw)
