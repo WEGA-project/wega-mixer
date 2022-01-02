@@ -103,7 +103,11 @@
 
 ### Установка Visual Studio Code (vscode) и прошивка <a name="install"></a>
 #### Шаг 1
-Скачать и установить [vscode](https://code.visualstudio.com/download).
+Скачать и установить [vscode](https://code.visualstudio.com/download)
+
+Если у вас `Windows OS`, то скорее всего потребуется установить драйвера, которые можно скачать [здесь](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
+
+В большинстве случаев подходят [CP210x Universal Windows Driver](https://www.silabs.com/documents/public/software/CP210x_Universal_Windows_Driver.zip)
 
 #### Шаг 2
 Запускаем `vscode`  идем в `extensions` и устанавливаем `platformio`.
@@ -152,13 +156,23 @@ const char* password = "YOUR_WIFI_PASSWORD";
 
 Если в терминале видим `SUCCESS` то подключаем `ESP8266` через консольный кабель.
 
+
 <a name="usb"></a>
 
 Нажимаем кнопку  `Upload` и заливаем проект на `ESP8266`
 
 <a href="images/pio-upload.png"><img src="images/pio-upload.png" width="250"></a>
 
-В большинстве случаев `platformio` найдет подключеное устроиство через консольный кабель автоматически.
+В большинстве случаев `platformio` найдет подключеное устроиство через консольный кабель автоматически, если этого не произошло то добавляем строчку в самом низу в файле `platformio.ini` 
+
+Для `Widows OS` систем
+`upload_port = COM[13]` -  после прошивки `ESP` по консольному кабелю строчку необходимо удалить.
+
+Для `Linux` и `MacOS` систем
+`upload_port = /dev/ttyUSB*` -  после прошивки `ESP` по консольному кабелю строчку необходимо удалить.
+
+Больше про настройки `upload_port` можно прочитать [здесь](https://docs.platformio.org/en/latest/projectconf/section_env_upload.html#id1)
+
 
 При условии, что сборка компонентов была выполнена правильно, то как только прошивка будет загружена на плату и произойдет перезагрузка, на экране должна появится надпись `Ready`.
 
