@@ -435,7 +435,11 @@ void reportToWega(int systemId) {
   httpstr.reserve(512);
   httpstr += F(WegaApiUrl);
   httpstr += F("?s=");
-  httpstr += systemId; 
+  httpstr += systemId;
+  httpstr += "&db=" + wegadb;
+  httpstr += "&auth=" + wegaauth;
+
+
   for(byte i = 0; i < PUMPS_NO; i++) {
     httpstr += F("&p");
     httpstr += (i + 1);
