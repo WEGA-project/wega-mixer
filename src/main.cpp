@@ -2,10 +2,9 @@
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
 
-#include <pre.h>
-#include <style.h>
 
 #define FW_version  "1.1.a"
+
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -13,14 +12,30 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <ESP8266HTTPClient.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <HX711.h>
+#include <Adafruit_MCP23017.h>
+
+
+#include <pre.h>
+#include <style.h>
+
+// #include <ESP8266WiFi.h>
+// #include <WiFiClient.h>
+// #include <ESP8266WebServer.h>
+// #include <ESP8266mDNS.h>
+// #include <WiFiUdp.h>
+// #include <ArduinoOTA.h>
 ESP8266WebServer server(80);
 
-#include <WiFiClient.h>
-#include <ESP8266HTTPClient.h>
+// #include <WiFiClient.h>
+// #include <ESP8266HTTPClient.h>
 
 
 //#include <Wire.h>
-#include <Adafruit_MCP23017.h>
+// #include <Adafruit_MCP23017.h>
 Adafruit_MCP23017 mcp;
 // Assign ports names
 // Here is the naming convention:
