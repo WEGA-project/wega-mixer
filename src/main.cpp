@@ -2,7 +2,7 @@
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
 
-#define FW_version "1.1.a"
+#define FW_version "ESP32 1.1.a"
 
 #include <WiFi.h>
 #include <WiFiClient.h>
