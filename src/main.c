@@ -2,7 +2,8 @@
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
 
-#include <mixer.ino>
+#include <pre.h>
+#include <style.h>
 
 #define FW_version  "1.1.a"
 
