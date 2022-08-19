@@ -24,22 +24,22 @@ Adafruit_MCP23017 mcp;
 // B0=8 .. B7=15
 // That means if you have A0 == 0 B0 == 8 (this is how it's on the board B0/A0 == 8/0)
 // one more example B3/A3 == 11/3
-#define A0 0
-#define A1 1
-#define A2 2
-#define A3 3
-#define A4 4
-#define A5 5
-#define A6 6
-#define A7 7
-#define B0 8
-#define B1 9
-#define B2 10
-#define B3 11
-#define B4 12
-#define B5 13
-#define B6 14
-#define B7 15
+#define DRV1_A 0
+#define DRV1_B 1
+#define DRV1_C 2
+#define DRV1_D 3
+#define DRV2_A 4
+#define DRV2_B 5
+#define DRV2_C 6
+#define DRV2_D 7
+#define DRV3_A 8
+#define DRV3_B 9
+#define DRV3_C 10
+#define DRV3_D 11
+#define DRV4_A 12
+#define DRV4_B 13
+#define DRV4_C 14
+#define DRV4_D 15
 
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F
