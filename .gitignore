@@ -4,6 +4,6 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
-.pio/build/**
 # Local History for Visual Studio Code
 .history/
+.pio/build/**
