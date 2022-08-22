@@ -299,7 +299,7 @@ void setup()
 
   Wire.begin();
   // Wire.setClock(400000L);   // 400 kHz I2C clock speed
-  lcd.begin(SDA,SCL); // SDA=D1, SCL=D2
+  lcd.init(); // 
   lcd.backlight();
 
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
