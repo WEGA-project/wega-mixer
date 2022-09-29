@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
-const char FW_version[] PROGMEM = "2.3";
+const char FW_version[] PROGMEM = "2.3.0";
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
