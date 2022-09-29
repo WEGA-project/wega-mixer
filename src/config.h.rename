@@ -17,7 +17,7 @@ const char* password = "YOUR_WIFI_PASSWORD";
 // scale_calibration, side A and B
 float scale_calibration_A = 2030;
 float scale_calibration_B = 2030;
-float scale_read_times = 12;
+int scale_read_times = 12;
 
 // Kalman filtering in scales mode
 #define KALMAN true

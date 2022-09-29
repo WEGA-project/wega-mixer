@@ -156,7 +156,7 @@ void ping() {
 
 float readScalesWithCheck(int times) {
   float value1 = readScales(times / 2);
-  float counter = 0;
+  int counter = 0;
    while (true) {
     counter=counter+1;
     server.handleClient();
