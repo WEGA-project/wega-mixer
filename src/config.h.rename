@@ -21,9 +21,10 @@ float scale_calibration_B = 2030;
 // Kalman filtering in scales mode
 #define KALMAN true
 
-// Setting WEGA-API
- #define WegaApiUrl "http://192.168.237.106/wega-api/mixerdb.php"
-String wegaauth = "73aXXXXXXXXXXXXXXXXXX8338";
+// Setting WEGA-API URL
+ #define WegaApiUrl "http://WEGA_IP_ADDRES/wega-api/mixerdb.php"
+// Replace wegaauth with your secret key
+String wegaauth = "YOUR_SECRET_AUTH_KEY";
 String wegadb = "mixer";
 
 // Pump #1
