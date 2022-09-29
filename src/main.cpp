@@ -132,23 +132,25 @@ void setup() {
     mcp.pinMode(pinForward[i], OUTPUT); 
     mcp.pinMode(pinReverse[i], OUTPUT);
   }
-
+  Serial.begin(9600);
   scale.begin(D5, D6); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
   scale.power_up();
-  delay (3000);
-  tareScalesWithCheck(255);  
+  // delay (3000);
+  tareScalesWithCheck(scale_times);  
   
   lcd.clear();
   setState(STATE_READY);
+ 
 }
 
 void loop() {
-  readScales(16);
+  readScales(12);
   printStatus(stateStr[state]); 
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
   server.handleClient();
   ArduinoOTA.handle();
   MDNS.update();
   if (lastSentTime + 1000 < millis()) sendScalesValue();
+  delay(100);
 }

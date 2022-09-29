@@ -156,12 +156,14 @@ void ping() {
 
 float readScalesWithCheck(int times) {
   float value1 = readScales(times / 2);
-  while (true) {
+  float counter = 0;
+   while (true) {
+    counter=counter+1;
     server.handleClient();
     ping();
-    delay(20);
+    // delay(20);
     float value2 = readScales(times / 2);
-    if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A)) {
+    if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A) or counter>times/2 ) {
       return (value1 + value2) / 2;
     }
     value1 = value2;
@@ -169,19 +171,18 @@ float readScalesWithCheck(int times) {
 }
 
 void handleMeasure() {
-  if (state != STATE_READY) return busyPage(); 
-  
-  setState(STATE_BUSY);    
-  float rawValue = readScalesWithCheck(128);
-  String message((char*)0);
-  message.reserve(255);
-  message += '{';
-  appendJson(message, F("value"),    rawToUnits(rawValue),  false, false);
-  appendJson(message, F("rawValue"), rawValue,              false, false);
-  appendJson(message, F("rawZero"),  scale.get_offset(),    false, true);
-  message += '}';
-  server.send(200, "application/json", message);
-  setState(STATE_READY);
+    if (state != STATE_READY) return busyPage(); 
+    setState(STATE_BUSY);    
+    float rawValue = readScalesWithCheck(scale_read_times);
+    String message((char*)0);
+    message.reserve(255);
+    message += '{';
+    appendJson(message, F("value"),    rawToUnits(rawValue),  false, false);
+    appendJson(message, F("rawValue"), rawValue,              false, false);
+    appendJson(message, F("rawZero"),  scale.get_offset(),    false, true);
+    message += '}';
+    server.send(200, "application/json", message);
+    setState(STATE_READY);
 } 
 
 // |          Ready |
@@ -197,7 +198,12 @@ void printProgress(const __FlashStringHelper* progress) {
 }
 
 void tareScalesWithCheck(int times) {
-  scale.set_offset(readScalesWithCheck(times));
+  if (scale.is_ready())
+  {
+   scale.set_offset(readScalesWithCheck(scale_read_times));
+  }
+  
+  
 }
 
 void handleTare(){
@@ -206,7 +212,7 @@ void handleTare(){
   setState(STATE_BUSY);
   printStatus(stateStr[state]);
   printProgress(F("Taring"));
-  tareScalesWithCheck(255);
+  tareScalesWithCheck(12);
   setState(STATE_READY);
   okPage();
 }
@@ -359,13 +365,13 @@ float pumping(int n) {
     printPreload(preload);
     pumpStart(n); wait(preload, 10); pumpStop(n);
 
-    curvol[n] = rawToUnits(readScalesWithCheck(128));
+    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
     server.handleClient();
     sendReportUpdate();
   } else { // прелоад до первой капли
     while (curvol[n] < 0.02) {
       preload += pumpToValue(n, 0.03, staticPreload[n] * 2, 0.1, printProgressValueOnly);
-      curvol[n] = rawToUnits(readScalesWithCheck(128));
+      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
       server.handleClient();
       sendReportUpdate();
     }
@@ -385,7 +391,7 @@ float pumping(int n) {
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long workedTime = pumpToValue(n, curvol[n] + valueToPump, timeToPump, allowedOscillation, printProgress);
       float prevValue = curvol[n];
-      curvol[n] = rawToUnits(readScalesWithCheck(128));
+      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
@@ -401,7 +407,7 @@ float pumping(int n) {
     pumpStart(n); delay(sk); pumpStop(n);
       
     float prevValue = curvol[n];
-    curvol[n] = rawToUnits(readScalesWithCheck(128));
+    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
     if (curvol[n] - prevValue < 0.01) {sk = min(80, sk + 2);}
     if (curvol[n] - prevValue > 0.01) {sk = max(2, sk - 2);}
     if (curvol[n] - prevValue > 0.1 ) {sk = 0;}
@@ -472,11 +478,11 @@ void handleStart() {
 
   float offsetBeforePump = scale.get_offset();
   scale.set_scale(scale_calibration_A);
-  float raw1 = readScalesWithCheck(255);
+  float raw1 = readScalesWithCheck(scale_read_times);
   pumping(0);
   pumping(1);
   pumping(2);
-  float raw2 = readScalesWithCheck(255);   
+  float raw2 = readScalesWithCheck(scale_read_times);   
   sumA = (raw2 - raw1) / scale_calibration_A;
   
   scale.set_scale(scale_calibration_B); 
@@ -487,7 +493,7 @@ void handleStart() {
   pumping(7); 
   pumpWorking = -1;
   
-  float raw3 = readScalesWithCheck(255); 
+  float raw3 = readScalesWithCheck(scale_read_times); 
   sumB = (raw3 - raw2) / scale_calibration_B;
 
   reportToWega(systemId);
