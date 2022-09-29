@@ -231,8 +231,7 @@ void pumpStart(int n) {
 
 void pumpStop(int n) {
   mcp.digitalWrite(pinForward[n], LOW); 
-  mcp
-  .digitalWrite(pinReverse[n], LOW);
+  mcp.digitalWrite(pinReverse[n], LOW);
 }
 void pumpReverse(int n) {
   mcp.digitalWrite(pinForward[n], LOW); 
@@ -398,8 +397,13 @@ float pumping(int n) {
   while (curvol[n] < goal[n] - 0.01) {
     printProgress(curvol[n], sk);
     
-    pumpStart(n); delay(sk); pumpStop(n);
-      
+    pumpReverse(n);
+    delay(50);
+    pumpStart(n);
+    delay(sk+50);
+    pumpStop(n);
+
+
     float prevValue = curvol[n];
     curvol[n] = rawToUnits(readScalesWithCheck(128));
     if (curvol[n] - prevValue < 0.01) {sk = min(80, sk + 2);}
@@ -435,7 +439,11 @@ void reportToWega(int systemId) {
   httpstr.reserve(512);
   httpstr += F(WegaApiUrl);
   httpstr += F("?s=");
-  httpstr += systemId; 
+  httpstr += systemId;
+  httpstr += "&db=" + wegadb;
+  httpstr += "&auth=" + wegaauth;
+
+
   for(byte i = 0; i < PUMPS_NO; i++) {
     httpstr += F("&p");
     httpstr += (i + 1);
