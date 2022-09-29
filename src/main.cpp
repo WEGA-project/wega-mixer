@@ -136,12 +136,9 @@ void setup() {
   scale.begin(D5, D6); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
   scale.power_up();
-  // delay (3000);
   tareScalesWithCheck(scale_times);  
-  
   lcd.clear();
   setState(STATE_READY);
- 
 }
 
 void loop() {
