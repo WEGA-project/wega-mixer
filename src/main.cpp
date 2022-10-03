@@ -80,6 +80,7 @@ enum State {STATE_READY, STATE_WORKING, STATE_BUSY};
 float goal[PUMPS_NO];
 float curvol[PUMPS_NO];
 float sumA, sumB;
+
 byte pumpWorking = -1;
 unsigned long sTime, eTime;
 
@@ -117,6 +118,8 @@ void setup() {
   server.on("/rest/tare",    handleTare);
   server.on("/rest/measure", handleMeasure);  
   server.on("/rest/test",    handleTest);
+  server.on("/rest/test-api",    handleTestApi);
+  
   server.on("/",             mainPage);
   server.on("/calibration",  calibrationPage);
   server.on("/style.css",    cssPage);
@@ -139,15 +142,16 @@ void setup() {
   tareScalesWithCheck(scale_read_times);  
   lcd.clear();
   setState(STATE_READY);
+  readScales(scale_read_times);
 }
 
 void loop() {
-  readScales(12);
+  readScales(scale_read_times);
   printStatus(stateStr[state]); 
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
   server.handleClient();
   ArduinoOTA.handle();
   MDNS.update();
-  if (lastSentTime + 1000 < millis()) sendScalesValue();
+  if (lastSentTime + 1000 < millis()) {sendScalesValue();}
   delay(100);
 }

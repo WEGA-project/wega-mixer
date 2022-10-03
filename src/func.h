@@ -83,6 +83,15 @@ void sendReportUpdate() {
   });  
 }
 
+void sendDevEvent( String t ) {
+  msg = t;
+  if (debug) {
+    sendEvent(F("debug"), 512, [] (String& message) {
+      appendJson(message, F("Message"),  msg  ,false, false);
+    });  
+  }
+}
+
 void handleSubscribe() {
   for (int i = 0; i < SSE_MAX_CHANNELS; i++) {
     if (!subscription[i] || subscription[i].status() == CLOSED) {
@@ -108,6 +117,7 @@ void handleSubscribe() {
 float rawToUnits(float raw) {
   return (raw - scale.get_offset()) / scale.get_scale();
 }
+
 
 void sendScalesValue() {
   sendEvent(F("scales"), 256, [] (String& message) {
@@ -155,20 +165,26 @@ void ping() {
 }
 
 float readScalesWithCheck(int times) {
-  float value1 = readScales(times / 2);
+  sendDevEvent("readScalesWithCheck start");
+  float value1 = readScales(times);
   int counter = 0;
    while (true) {
     counter=counter+1;
     server.handleClient();
     ping();
-    // delay(20);
-    float value2 = readScales(times / 2);
-    if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A) or counter>times/2 ) {
+    float value2 = readScales(times);
+    if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A  )  
+       or counter>times) {
+        
+        sendDevEvent("readScalesWithCheck start val " + String(fabs(value1 - value2) < fabs(0.01 * scale_calibration_A )) + " counter>time " + String(counter) + " times " + String(times) );
+
       return (value1 + value2) / 2;
     }
     value1 = value2;
   }
 }
+ 
+
 
 void handleMeasure() {
     if (state != STATE_READY) return busyPage(); 
@@ -198,12 +214,7 @@ void printProgress(const __FlashStringHelper* progress) {
 }
 
 void tareScalesWithCheck(int times) {
-  if (scale.is_ready())
-  {
-   scale.set_offset(readScalesWithCheck(scale_read_times));
-  }
-  
-  
+  scale.set_offset(readScalesWithCheck(times));  
 }
 
 void handleTare(){
@@ -212,7 +223,7 @@ void handleTare(){
   setState(STATE_BUSY);
   printStatus(stateStr[state]);
   printProgress(F("Taring"));
-  tareScalesWithCheck(12);
+  tareScalesWithCheck(scale_tare_times);
   setState(STATE_READY);
   okPage();
 }
@@ -256,7 +267,6 @@ void handleTest(){
   }
   setState(STATE_READY);
 }
-
 
 void wait(unsigned long ms, int step) {
   unsigned long endPreloadTime = millis() + ms; 
@@ -351,7 +361,7 @@ float pumping(int n) {
   }
 
   printStage(n, F("Tare"));
-  tareScalesWithCheck(255);
+  tareScalesWithCheck(scale_tare_times);
   server.handleClient();
 
   printStage(n, F("Load"));
@@ -378,6 +388,10 @@ float pumping(int n) {
     wait(2000, 10);
   }
   
+ 
+  sendDevEvent("Strating Fast");
+
+
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
   printStage(n, F("Fast"));
   float performance = 0.0007;                                 // производительность грамм/мс при 12v и трубке 2x4, в процессе уточняется
@@ -387,6 +401,7 @@ float pumping(int n) {
   if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
     while ((valueToPump = goal[n] - curvol[n] - dropTreshold) > 0) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
+      sendDevEvent("performance" + String(performance) + " dropTreshold: " + String(dropTreshold) + "valueToPump: "+ String(valueToPump) + "allowedOscillation: " + String(allowedOscillation));
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long workedTime = pumpToValue(n, curvol[n] + valueToPump, timeToPump, allowedOscillation, printProgress);
       float prevValue = curvol[n];
@@ -394,30 +409,46 @@ float pumping(int n) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
+      sendDevEvent("curvol[n] : "+String(curvol[n]) + " perfomance: " + String(performance) + " calc "+ String((curvol[n] - prevValue) / workedTime ));
     }
   }
   
+ 
+  sendDevEvent("Strating Drop");
   // капельный налив
   printStage(n, F("Drop"));
   int sk = 25;
-  while (curvol[n] < goal[n] - 0.01) {
+  int dk = 50;
+  int scale_modificator = 1;
+  int saved_dk = 0;
+  int sum_per_dk = 0 ;
+  int counter = 0;
+  while (curvol[n] < goal[n]) {
     printProgress(curvol[n], sk);
     
     pumpReverse(n);
-    delay(50);
+    delay(dk);
     pumpStart(n);
-    delay(sk+50);
+    delay(sk+dk);
     pumpStop(n);
 
-
+    
     float prevValue = curvol[n];
-    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
+    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times*scale_modificator));
     if (curvol[n] - prevValue < 0.01) {sk = min(80, sk + 2);}
     if (curvol[n] - prevValue > 0.01) {sk = max(2, sk - 2);}
-    if (curvol[n] - prevValue > 0.1 ) {sk = 0;}
-    
+    if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
+
+    if (saved_dk!=dk){saved_dk=dk; counter=0;sum_per_dk=0;}
+    counter+=1;
+    sum_per_dk+=goal[n] - curvol[n];
+    float avg_per_dk = sum_per_dk/counter;
+
+    sendDevEvent("curvol[n] "+ String(curvol[n]) + " sk: "+ String(sk) + " prevValue "+ String(prevValue) + " dk " + String(dk) + " avg_per_dk " + String(avg_per_dk) );
     server.handleClient();
     sendReportUpdate();
+
+    
   }
 
   // реверс, высушить трубки
@@ -438,6 +469,49 @@ void append<float>(String& ret, const float& value) {
   char buff[20];
   dtostrf(value, 5, 3, buff);
   ret += buff;
+}
+
+void reportToWebCalc(int systemId, int mixerId) {
+  
+  String message((char*)0);
+  message.reserve(512);
+  message += '{';
+  appendJson(message, F("s"),    systemId,  false, false);
+  appendJson(message, F("mixer_id"),    mixerId,  false, false);
+  appendJson(message, F("token"),    calcToken,  true, false);
+
+  for(byte i = 0; i < PUMPS_NO; i++) {
+
+    append(message, '"');
+    append(message,  F("p"));
+    append(message, (i+1) ); 
+    append(message, "\":\""); 
+    append(message, curvol[i]);
+    append(message, "\"");
+    append(message, ",");
+
+    append(message, '"');
+    append(message,  F("v"));
+    append(message, (i+1) ); 
+    append(message, "\":\""); 
+    append(message, goal[i]);
+    append(message, "\"");
+    
+    if (i+1<PUMPS_NO){append(message, ",");}
+  }
+  message += '}';
+  sendDevEvent(message);
+   
+  const char* host = "https://calc.progl.su/";
+  WiFiClientSecure client;
+  HTTPClient http;
+  client.setInsecure();
+  client.connect(host, uint16_t(443));
+  http.begin(client, calcUrl);
+  http.addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0");
+  int httpResponseCode = http.POST(message);
+  sendDevEvent( "httpResponseCode " + String(httpResponseCode) + " str: " +  http.getString() );
+  http.end();
 }
 
 void reportToWega(int systemId) {
@@ -467,6 +541,20 @@ void reportToWega(int systemId) {
   http.end();
 }
 
+void handleTestApi(){
+  int systemId = server.arg("s").toInt();
+  int mixerId = server.arg("mixer_id").toInt();
+  for (byte i = 0; i < PUMPS_NO; i ++) {
+    goal[i] = random(10, 1000) / 100.0;
+    curvol[i] = random(10, 1000) / 100.0;
+  }
+  if (state != STATE_READY) return busyPage(); 
+  setState(STATE_BUSY);
+  okPage();
+  reportToWebCalc(systemId,mixerId);
+  setState(STATE_READY);
+}
+
 void handleStart() {
   if (state != STATE_READY) return busyPage(); 
   
@@ -476,6 +564,7 @@ void handleStart() {
   sumA = 0;
   sumB = 0;
   int systemId = server.arg("s").toInt();
+  int mixerId = server.arg("mixer_id").toInt();
 
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
@@ -493,6 +582,7 @@ void handleStart() {
   float raw2 = readScalesWithCheck(scale_read_times);   
   sumA = (raw2 - raw1) / scale_calibration_A;
   
+  // delay(1000);
   scale.set_scale(scale_calibration_B); 
   pumping(3);
   pumping(4);
@@ -505,6 +595,9 @@ void handleStart() {
   sumB = (raw3 - raw2) / scale_calibration_B;
 
   reportToWega(systemId);
+  if (mixerId){reportToWebCalc(systemId, mixerId);}
+  
+  
 
   scale.set_scale(scale_calibration_A);
   scale.set_offset(offsetBeforePump);

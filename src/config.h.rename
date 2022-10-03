@@ -28,6 +28,14 @@ int scale_read_times = 12;
 String wegaauth = "YOUR_SECRET_AUTH_KEY";
 String wegadb = "mixer";
 
+// debug if 1
+int debug = 0;
+
+// web hpg calculator intergration - token in calc per mixer
+#define calcUrl "https://calc.progl.su/mixer/history/add/"
+String calcToken = "xxxxxx-xxxxxx-xxxxxx-xxxx-xxxxxx";
+
+
 // Pump #1
 #define pump1  A0        // Port 1
 #define pump1r B0        // Port 2
