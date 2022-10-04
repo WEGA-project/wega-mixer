@@ -83,14 +83,7 @@ void sendReportUpdate() {
   });  
 }
 
-void sendDevEvent( String t ) {
-  msg = t;
-  if (debug) {
-    sendEvent(F("debug"), 512, [] (String& message) {
-      appendJson(message, F("Message"),  msg  ,false, false);
-    });  
-  }
-}
+
 
 void handleSubscribe() {
   for (int i = 0; i < SSE_MAX_CHANNELS; i++) {
@@ -165,7 +158,6 @@ void ping() {
 }
 
 float readScalesWithCheck(int times) {
-  sendDevEvent("readScalesWithCheck start");
   float value1 = readScales(times);
   int counter = 0;
    while (true) {
@@ -175,10 +167,8 @@ float readScalesWithCheck(int times) {
     float value2 = readScales(times);
     if (fabs(value1 - value2) < fabs(0.01 * scale_calibration_A  )  
        or counter>times) {
-        
-        sendDevEvent("readScalesWithCheck start val " + String(fabs(value1 - value2) < fabs(0.01 * scale_calibration_A )) + " counter>time " + String(counter) + " times " + String(times) );
-
-      return (value1 + value2) / 2;
+        String t1 = "readScalesWithCheck start val " + String(fabs(value1 - value2) < fabs(0.01 * scale_calibration_A )) + " counter>time " + String(counter) + " times " + String(times);
+        return (value1 + value2) / 2;
     }
     value1 = value2;
   }
@@ -389,7 +379,7 @@ float pumping(int n) {
   }
   
  
-  sendDevEvent("Strating Fast");
+ 
 
 
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
@@ -401,7 +391,6 @@ float pumping(int n) {
   if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
     while ((valueToPump = goal[n] - curvol[n] - dropTreshold) > 0) {
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
-      sendDevEvent("performance" + String(performance) + " dropTreshold: " + String(dropTreshold) + "valueToPump: "+ String(valueToPump) + "allowedOscillation: " + String(allowedOscillation));
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long workedTime = pumpToValue(n, curvol[n] + valueToPump, timeToPump, allowedOscillation, printProgress);
       float prevValue = curvol[n];
@@ -409,42 +398,26 @@ float pumping(int n) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
-      sendDevEvent("curvol[n] : "+String(curvol[n]) + " perfomance: " + String(performance) + " calc "+ String((curvol[n] - prevValue) / workedTime ));
     }
   }
   
- 
-  sendDevEvent("Strating Drop");
   // капельный налив
   printStage(n, F("Drop"));
   int sk = 25;
   int dk = 50;
   int scale_modificator = 1;
-  int saved_dk = 0;
-  int sum_per_dk = 0 ;
-  int counter = 0;
   while (curvol[n] < goal[n]) {
     printProgress(curvol[n], sk);
-    
     pumpReverse(n);
     delay(dk);
     pumpStart(n);
     delay(sk+dk);
     pumpStop(n);
-
-    
     float prevValue = curvol[n];
     curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times*scale_modificator));
     if (curvol[n] - prevValue < 0.01) {sk = min(80, sk + 2);}
     if (curvol[n] - prevValue > 0.01) {sk = max(2, sk - 2);}
     if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
-
-    if (saved_dk!=dk){saved_dk=dk; counter=0;sum_per_dk=0;}
-    counter+=1;
-    sum_per_dk+=goal[n] - curvol[n];
-    float avg_per_dk = sum_per_dk/counter;
-
-    sendDevEvent("curvol[n] "+ String(curvol[n]) + " sk: "+ String(sk) + " prevValue "+ String(prevValue) + " dk " + String(dk) + " avg_per_dk " + String(avg_per_dk) );
     server.handleClient();
     sendReportUpdate();
 
@@ -489,7 +462,6 @@ void reportToWebCalc(int systemId, int mixerId) {
     append(message, curvol[i]);
     append(message, "\"");
     append(message, ",");
-
     append(message, '"');
     append(message,  F("v"));
     append(message, (i+1) ); 
@@ -500,8 +472,7 @@ void reportToWebCalc(int systemId, int mixerId) {
     if (i+1<PUMPS_NO){append(message, ",");}
   }
   message += '}';
-  sendDevEvent(message);
-   
+
   const char* host = "https://calc.progl.su/";
   WiFiClientSecure client;
   HTTPClient http;
@@ -509,8 +480,7 @@ void reportToWebCalc(int systemId, int mixerId) {
   client.connect(host, uint16_t(443));
   http.begin(client, calcUrl);
   http.addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0");
-  int httpResponseCode = http.POST(message);
-  sendDevEvent( "httpResponseCode " + String(httpResponseCode) + " str: " +  http.getString() );
+  http.POST(message);
   http.end();
 }
 
