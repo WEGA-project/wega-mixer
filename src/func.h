@@ -137,7 +137,12 @@ void handleMeta() {
 float readScales(int times) {
   float sum = 0;
   for (int i = 0; i < times; i++) {
-    float value = scale.read();
+    // todo readScales should finish in predicted time. 
+    uint32_t result;
+    do {
+      result = scale.read();
+    } while ((result == 0xffffffff) || (result == 0));
+    float value = result;
     sum += value;
     displayFilter.updateEstimation(value);
     filter.updateEstimation(value);
