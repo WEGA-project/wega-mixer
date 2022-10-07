@@ -173,7 +173,7 @@ void loop() {
   ArduinoOTA.handle();
   MDNS.update();
   if (lastSentTime + 5000 < millis()) {
-    // lastSentTime = millis();
+    lastSentTime = millis();
     sendScalesValue();  
     }
  
