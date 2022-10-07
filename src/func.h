@@ -36,6 +36,9 @@ void sendEvent(const __FlashStringHelper* name, int bufSize, void (*appendPayloa
   }
 }
 
+
+
+
 // функции для генерации json
 template<typename T>
 void appendJson(String& src, const __FlashStringHelper* name, const T& value, const bool quote, const bool last) {
@@ -45,6 +48,14 @@ void appendJson(String& src, const __FlashStringHelper* name, const T& value, co
   if (quote) src += '"';
   if (!last) src += ',';  
 }
+
+void send_mqtt_msg(String tmsg ){
+  if (!mqqt_client.connected()) { mqqt_client.connect(calcToken, mqtt_user, mqtt_password);  }
+  snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), value);
+  mqqt_client.publish("mixer", mqtt_msg);
+}
+
+
 
 void sendState() {
   sendEvent(F("state"), 256, [] (String& message) {
@@ -71,6 +82,24 @@ void appendJsonArr(String& src, const __FlashStringHelper* name, const T value[]
   if (!last) src += ',';  
 }
 
+void reportToWebCalc() {
+  
+  if (mixingId!=0) {
+    String message((char*)0);
+    message.reserve(512);
+    message += '{';
+    appendJson(message, F("mixing_id"), mixingId,  false, false);
+    appendJson(message, F("mixer_id"), mixerId,  false, false);
+    appendJson(message, F("token"), calcToken,  true, false);
+    appendJsonArr(message, F("goal"), goal, PUMPS_NO,  false, false);
+    appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, false);
+    if(test == true){  appendJson(message, F("test"), true,   false, true);  }
+    message += '}';
+    send_mqtt_msg(message);
+  }
+}
+
+
 void sendReportUpdate() {
   sendEvent(F("report"), 512, [] (String& message) {
     unsigned long ms = sTime == 0 ? 0 : (eTime == 0 ? millis() - sTime : eTime - sTime);  
@@ -81,6 +110,7 @@ void sendReportUpdate() {
     appendJsonArr(message, F("goal"),   goal,   PUMPS_NO,  false, false);
     appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, true);
   });  
+  reportToWebCalc();
 }
 
 
@@ -118,6 +148,7 @@ void sendScalesValue() {
     appendJson(message, F("rawValue"), displayFilter.getEstimation(),             false, false);
     appendJson(message, F("rawZero"),  scale.get_offset(),                        false, true);
   }); 
+  reportToWebCalc();
 }
 
 
@@ -229,28 +260,6 @@ void printStage(byte n, const __FlashStringHelper* stage) {
 }
 
 
-void reportToWebCalc(int id_mixing, int mixerId) {
-  
-  String message((char*)0);
-  message.reserve(512);
-  message += '{';
-  appendJson(message, F("id_mixing"), id_mixing,  false, false);
-  appendJson(message, F("mixer_id"), mixerId,  false, false);
-  appendJson(message, F("token"), calcToken,  true, false);
-  appendJsonArr(message, F("goal"), goal, PUMPS_NO,  false, false);
-  appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, true);
-  message += '}';
-
-  WiFiClientSecure client;
-  HTTPClient http;
-  client.setInsecure();
-  client.connect(calcHost, uint16_t(443));
-  http.begin(client, calcUrl);
-  http.addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0");
-  http.POST(message);
-  http.end();
-}
-
 
 // Функции помп
 void pumpStart(int n) {
@@ -281,7 +290,7 @@ void handleTest(){
       printStage(i, F("Revers")); pumpReverse(i); delay(3000);
       printStage(i, F("Stop"));  pumpStop(i); delay(1000);
     }
-    setState(STATE_READY);
+  setState(STATE_READY);
 }
 
 void wait(unsigned long ms, int step) {
@@ -364,7 +373,7 @@ void printResult(float value) {
 }
 
 // Функция налива
-float pumping(int n, int mixerId, int mixing_id) {
+float pumping(int n) {
   pumpWorking = n;
   server.handleClient();
   sendReportUpdate();
@@ -403,11 +412,6 @@ float pumping(int n, int mixerId, int mixing_id) {
     printPreload(preload);
     wait(2000, 10);
   }
-  if (mixerId){reportToWebCalc(mixing_id, mixerId);}
-  
- 
- 
-
 
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
   printStage(n, F("Fast"));
@@ -425,7 +429,6 @@ float pumping(int n, int mixerId, int mixing_id) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
-      if (mixerId){reportToWebCalc(mixing_id, mixerId);}
     }
   }
   
@@ -448,7 +451,6 @@ float pumping(int n, int mixerId, int mixing_id) {
     if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
     server.handleClient();
     sendReportUpdate();
-    if (mixerId){reportToWebCalc(mixing_id, mixerId);}
     
   }
 
@@ -501,8 +503,11 @@ void reportToWega(int systemId) {
 
 void handleTestApi(){
   int systemId = server.arg("s").toInt();
-  int mixerId = server.arg("mixer_id").toInt();
-  int mixing_id = server.arg("mixing_id").toInt();
+  
+  mixerId = server.arg("mixer_id").toInt();
+  mixingId = server.arg("mixing_id").toInt();
+  test=true;
+  
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = random(10, 1000) / 100.0;
     curvol[i] = random(10, 1000) / 100.0;
@@ -510,8 +515,11 @@ void handleTestApi(){
   if (state != STATE_READY) return busyPage(); 
   setState(STATE_BUSY);
   okPage();
-  if (mixerId){reportToWebCalc(mixing_id, mixerId);}
   setState(STATE_READY);
+  sendReportUpdate();  
+  mixerId = 0;
+  mixingId= 0;
+  test=false;
 }
 
 void handleStart() {
@@ -523,8 +531,8 @@ void handleStart() {
   sumA = 0;
   sumB = 0;
   int systemId  = server.arg("s").toInt();
-  int mixerId   = server.arg("mixer_id").toInt();
-  int mixing_id = server.arg("mixing_id").toInt();
+  mixerId   = server.arg("mixer_id").toInt();
+  mixingId = server.arg("mixing_id").toInt();
 
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
@@ -532,39 +540,35 @@ void handleStart() {
   }
  
   okPage();
-
   float offsetBeforePump = scale.get_offset();
   scale.set_scale(scale_calibration_A);
   float raw1 = readScalesWithCheck(scale_read_times);
-  pumping(0, mixerId, mixing_id);
-  pumping(1, mixerId, mixing_id);
-  pumping(2, mixerId, mixing_id);
+  pumping(0);
+  pumping(1);
+  pumping(2);
   float raw2 = readScalesWithCheck(scale_read_times);   
   sumA = (raw2 - raw1) / scale_calibration_A;
-  
   // delay(1000);
   scale.set_scale(scale_calibration_B); 
-  pumping(3, mixerId, mixing_id);
-  pumping(4, mixerId, mixing_id);
-  pumping(5, mixerId, mixing_id);
-  pumping(6, mixerId, mixing_id);
-  pumping(7, mixerId, mixing_id); 
+  pumping(3);
+  pumping(4);
+  pumping(5);
+  pumping(6);
+  pumping(7); 
   pumpWorking = -1;
-  
   float raw3 = readScalesWithCheck(scale_read_times); 
   sumB = (raw3 - raw2) / scale_calibration_B;
-
   reportToWega(systemId);
-  
-  
-  
-
   scale.set_scale(scale_calibration_A);
   scale.set_offset(offsetBeforePump);
-
   eTime = millis();
   sendReportUpdate();
   setState(STATE_READY);
   lcd.clear();
+  mixerId   = 0;
+  mixingId = 0;
 }
+
+
+ 
 

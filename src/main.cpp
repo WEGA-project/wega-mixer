@@ -16,6 +16,8 @@ const char FW_version[] PROGMEM = "2.3.0";
 #include <LiquidCrystal_I2C.h>
 #include <HX711.h>
 #include <Adafruit_MCP23017.h>
+#include <PubSubClient.h>
+
 
 #include <config.h>
 
@@ -129,6 +131,9 @@ void setup() {
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
   ArduinoOTA.onError([](ota_error_t error) {});
   ArduinoOTA.begin();
+
+  
+
   
   mcp.begin();
   for (byte i = 0; i < PUMPS_NO; i++) {
@@ -143,15 +148,39 @@ void setup() {
   lcd.clear();
   setState(STATE_READY);
   readScales(scale_read_times);
+  uint16_t buf_size= 512;
+  mqqt_client.setBufferSize(buf_size);
+  mqqt_client.setServer(calcUrl, calcMqttPort);
+  mqqt_client.connect(calcToken, mqtt_user, mqtt_password); 
+  
+ 
+
+
+  
+ 
+ 
 }
 
 void loop() {
+
+
+
+
   readScales(scale_read_times);
   printStatus(stateStr[state]); 
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
   server.handleClient();
   ArduinoOTA.handle();
   MDNS.update();
-  if (lastSentTime + 1000 < millis()) {sendScalesValue();}
+  if (lastSentTime + 5000 < millis()) {
+    // lastSentTime = millis();
+    sendScalesValue();  
+    }
+ 
+  if (!mqqt_client.loop()){mqqt_client.connect(calcToken, mqtt_user, mqtt_password); }
+
+
   delay(100);
+
+
 }
