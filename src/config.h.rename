@@ -28,12 +28,27 @@ int scale_read_times = 12;
 String wegaauth = "YOUR_SECRET_AUTH_KEY";
 String wegadb = "mixer";
 
-// debug if 1
-int debug = 0;
+ 
+// web hpg calculator intergration
+// заменить только токен на свой, остальные параметры передаются с калькулятора
 
-// web hpg calculator intergration - token in calc per mixer
-#define calcUrl "https://calc.progl.su/mixer/history/add/"
-String calcToken = "xxxxxx-xxxxxx-xxxxxx-xxxx-xxxxxx";
+const char* calcToken = "64cca3d4-a146-44df-83d4-c3724a80e6b7";
+const char* calcUrl   = "calc.progl.su";
+const char* mqtt_user = "mixer";
+const char* mqtt_password = "mixer2022";
+
+uint16_t calcMqttPort = 1883;
+int mixerId=0;
+int mixingId = 0;
+int value = 0;
+bool test = false;
+
+// #MQTT PUB SUB
+#define MSG_BUFFER_SIZE	(512)
+char mqtt_msg[MSG_BUFFER_SIZE];
+WiFiClient mqtt_wclient;
+PubSubClient mqqt_client(mqtt_wclient);
+
 
 
 // Pump #1
