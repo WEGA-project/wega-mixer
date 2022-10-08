@@ -35,6 +35,8 @@ const char MAIN_page[] PROGMEM = R"=====(
       <p>P8 = <input type='text' name='p8'/> <span id='n8'></span><span id='r8'/></p>
     </fieldset>    
     <input type='hidden' name='s'>
+    <input type='hidden' name='mixing_id'>
+    <input type='hidden' name='mixer_id'>
     <p id='actions'>
         <input type='submit' value='Start'/>
         <input type='button' onclick="tare();" value='Tare'/>
@@ -56,6 +58,12 @@ function loadMeta() {
             }
         }
         document.getElementsByName('s')[0].value = params.get('s');
+        document.getElementsByName('mixing_id')[0].value = params.get('mixing_id');
+        document.getElementsByName('mixer_id')[0].value = params.get('mixer_id');
+
+
+    
+
         const evtSource = new EventSource("/rest/events");
         evtSource.addEventListener("state",  event => onStateUpdate(JSON.parse(event.data)));
         evtSource.addEventListener("scales", event => onScalesUpdate(JSON.parse(event.data)));

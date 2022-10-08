@@ -31,23 +31,24 @@ String wegadb = "mixer";
  
 // web hpg calculator intergration
 // заменить только токен на свой, остальные параметры передаются с калькулятора
-
-const char* calcToken = "64cca3d4-a146-44df-83d4-c3724a80e6b7";
+const char* calcToken = "123123123-123123123-123-123-123123123123";
 const char* calcUrl   = "calc.progl.su";
 const char* mqtt_user = "mixer";
 const char* mqtt_password = "mixer2022";
-
-uint16_t calcMqttPort = 1883;
 int mixerId=0;
 int mixingId = 0;
 int value = 0;
 bool test = false;
 
+
 // #MQTT PUB SUB
+String stage;
+uint16_t calcMqttPort = 1883;
 #define MSG_BUFFER_SIZE	(512)
 char mqtt_msg[MSG_BUFFER_SIZE];
 WiFiClient mqtt_wclient;
 PubSubClient mqqt_client(mqtt_wclient);
+
 
 
 

@@ -152,20 +152,12 @@ void setup() {
   mqqt_client.setBufferSize(buf_size);
   mqqt_client.setServer(calcUrl, calcMqttPort);
   mqqt_client.connect(calcToken, mqtt_user, mqtt_password); 
-  
- 
-
-
-  
+   
  
  
 }
 
 void loop() {
-
-
-
-
   readScales(scale_read_times);
   printStatus(stateStr[state]); 
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
@@ -176,11 +168,6 @@ void loop() {
     lastSentTime = millis();
     sendScalesValue();  
     }
- 
-  if (!mqqt_client.loop()){mqqt_client.connect(calcToken, mqtt_user, mqtt_password); }
-
-
+  if (!mqqt_client.loop()){ mqqt_client.connect(calcToken, mqtt_user, mqtt_password); }
   delay(100);
-
-
 }

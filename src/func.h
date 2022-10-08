@@ -50,9 +50,10 @@ void appendJson(String& src, const __FlashStringHelper* name, const T& value, co
 }
 
 void send_mqtt_msg(String tmsg ){
-  if (!mqqt_client.connected()) { mqqt_client.connect(calcToken, mqtt_user, mqtt_password);  }
+  if (!mqqt_client.loop()) {   Serial.println("mqqt_client reconnect"); mqqt_client.connect(calcToken, mqtt_user, mqtt_password);  }
   snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), value);
-  mqqt_client.publish("mixer", mqtt_msg);
+  boolean p = mqqt_client.publish("mixer", mqtt_msg);
+  Serial.println(p);
 }
 
 
@@ -83,18 +84,23 @@ void appendJsonArr(String& src, const __FlashStringHelper* name, const T value[]
 }
 
 void reportToWebCalc() {
-  
+  Serial.println("mixingId "+ String(mixingId));
   if (mixingId!=0) {
+     
     String message((char*)0);
     message.reserve(512);
     message += '{';
     appendJson(message, F("mixing_id"), mixingId,  false, false);
     appendJson(message, F("mixer_id"), mixerId,  false, false);
     appendJson(message, F("token"), calcToken,  true, false);
+    appendJson(message, F("pumpWorking"), pumpWorking,  false, false);
+    appendJson(message, F("stage"), stage,  true, false);
     appendJsonArr(message, F("goal"), goal, PUMPS_NO,  false, false);
-    appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, false);
-    if(test == true){  appendJson(message, F("test"), true,   false, true);  }
+    appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, true);
+    // if(test == true){  appendJson(message, F("test"), true,   false, true);  }
+
     message += '}';
+    Serial.println(message);
     send_mqtt_msg(message);
   }
 }
@@ -167,6 +173,9 @@ void handleMeta() {
 // Функции для работы с весами
 float readScales(int times) {
   float sum = 0;
+  
+  // if (!scale.is_ready()){ return sum; }
+
   for (int i = 0; i < times; i++) {
     // todo readScales should finish in predicted time. 
     uint32_t result;
@@ -317,7 +326,8 @@ long pumpToValue(byte n, float capValue, float capMillis, float allowedOscillati
   float maxValue = value;
   pumpStart(n);
   char exitCode;
-  for (long i = 0; true; i++) { 
+  Serial.println();
+  for (long i = 0; true; i+10) { 
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
       break;
@@ -329,14 +339,17 @@ long pumpToValue(byte n, float capValue, float capMillis, float allowedOscillati
       break;
     }
     readScales(1);
+    
     value = rawToUnits(filter.getEstimation());
     maxValue = max(value, maxValue);
-    if (i % 16 == 0) {
+    if (i % 160 == 0) {
+    
       printFunc(value);
       yield();
       server.handleClient();
       ping();
     }
+    delay(10);
   }
   pumpStop(n);
   printFunc(value);
@@ -374,6 +387,8 @@ void printResult(float value) {
 
 // Функция налива
 float pumping(int n) {
+  Serial.print("pumping");
+  Serial.println(n);
   pumpWorking = n;
   server.handleClient();
   sendReportUpdate();
@@ -385,25 +400,29 @@ float pumping(int n) {
     return 0;
   }
 
+  stage = "Tare";
   printStage(n, F("Tare"));
   tareScalesWithCheck(scale_tare_times);
   server.handleClient();
 
+  stage = "Load";
   printStage(n, F("Load"));
+  Serial.println("Load");
   long preload = 0;
   if (goal[n] < 0.5) { // статический прелоад
     preload = staticPreload[n];
-
+    Serial.println(" прелоад до первой капли");
     printProgress(F("Reverse"));
     pumpReverse(n); wait(preload, 10); pumpStop(n);
     printPreload(preload);
     pumpStart(n); wait(preload, 10); pumpStop(n);
-
     curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
     server.handleClient();
     sendReportUpdate();
+    delay(10);
   } else { // прелоад до первой капли
     while (curvol[n] < 0.02) {
+      Serial.println(" прелоад до первой капли");
       preload += pumpToValue(n, 0.03, staticPreload[n] * 2, 0.1, printProgressValueOnly);
       curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
       server.handleClient();
@@ -414,7 +433,10 @@ float pumping(int n) {
   }
 
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
+  
+  stage = "Fast";
   printStage(n, F("Fast"));
+  Serial.println(" Fast");
   float performance = 0.0007;                                 // производительность грамм/мс при 12v и трубке 2x4, в процессе уточняется
   float dropTreshold = goal[n] - curvol[n] > 1.0 ? 0.2 : 0.5; // определяет сколько оставить на капельный налив. Чем больше итераций тем точнее и можно лить почти до конца
   float valueToPump = goal[n] - curvol[n] - dropTreshold;
@@ -429,11 +451,16 @@ float pumping(int n) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
+      delay(10);
+      Serial.println("innser  Fast");
     }
   }
   
   // капельный налив
+
+  stage = "Drop";
   printStage(n, F("Drop"));
+
   int sk = 25;
   int dk = 50;
   int scale_modificator = 1;
@@ -451,10 +478,11 @@ float pumping(int n) {
     if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
     server.handleClient();
     sendReportUpdate();
-    
   }
 
   // реверс, высушить трубки
+  
+  stage = "Dry";
   printStage(n, F("Dry"));
   printResult(curvol[n]);
   pumpReverse(n);
@@ -531,7 +559,7 @@ void handleStart() {
   sumA = 0;
   sumB = 0;
   int systemId  = server.arg("s").toInt();
-  mixerId   = server.arg("mixer_id").toInt();
+  mixerId = server.arg("mixer_id").toInt();
   mixingId = server.arg("mixing_id").toInt();
 
   for (byte i = 0; i < PUMPS_NO; i ++) {
