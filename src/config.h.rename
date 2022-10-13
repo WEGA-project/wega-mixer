@@ -42,13 +42,13 @@ bool test = false;
 
 
 // #MQTT PUB SUB
-String stage;
 uint16_t calcMqttPort = 1883;
 #define MSG_BUFFER_SIZE	(512)
 char mqtt_msg[MSG_BUFFER_SIZE];
 WiFiClient mqtt_wclient;
 PubSubClient mqqt_client(mqtt_wclient);
 
+String stage;
 
 // Pump #1
 #define pump1  A0        // Port 1
