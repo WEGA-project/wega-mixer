@@ -171,20 +171,12 @@ void handleMeta() {
 // Функции для работы с весами
 float readScales(int times) {
   float sum = 0;
-  
-  // if (!scale.is_ready()){ return sum; }
-
   for (int i = 0; i < times; i++) {
-    // todo readScales should finish in predicted time. 
-    long result;
-    // do {
-      result = scale.read();
-    // } while ((result == 0xffffffff) || (result == 0));
-    float value = result;
+    // todo readScales should finish in predicted time.
+    float value  = scale.read(); 
     displayFilter.updateEstimation(value);
     filter.updateEstimation(value);
     sum += value;
-
   }
   return sum / times;
 }
