@@ -50,8 +50,6 @@ WiFiClient mqtt_wclient;
 PubSubClient mqqt_client(mqtt_wclient);
 
 
-
-
 // Pump #1
 #define pump1  A0        // Port 1
 #define pump1r B0        // Port 2

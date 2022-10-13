@@ -132,9 +132,7 @@ void setup() {
   ArduinoOTA.onError([](ota_error_t error) {});
   ArduinoOTA.begin();
 
-  
 
-  
   mcp.begin();
   for (byte i = 0; i < PUMPS_NO; i++) {
     mcp.pinMode(pinForward[i], OUTPUT); 
