@@ -517,18 +517,21 @@ void reportToWega(int systemId) {
 void handleTestApi(){
   int systemId = server.arg("s").toInt();
   
-  mixerId = server.arg("mixer_id").toInt();
+  mixerId  = server.arg("mixer_id").toInt();
   mixingId = server.arg("mixing_id").toInt();
   test=true;
   
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = random(10, 1000) / 100.0;
     curvol[i] = random(10, 1000) / 100.0;
+    pumpWorking = i;
+    sendReportUpdate();  
   }
   if (state != STATE_READY) return busyPage(); 
   setState(STATE_BUSY);
   okPage();
   setState(STATE_READY);
+  pumpWorking = -1;
   sendReportUpdate();  
   mixerId = 0;
   mixingId= 0;
