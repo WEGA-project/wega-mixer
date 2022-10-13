@@ -138,7 +138,7 @@ void setup() {
     mcp.pinMode(pinForward[i], OUTPUT); 
     mcp.pinMode(pinReverse[i], OUTPUT);
   }
-  Serial.begin(9600);
+
   scale.begin(D5, D6); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
   scale.power_up();
