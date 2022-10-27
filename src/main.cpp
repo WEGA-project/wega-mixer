@@ -139,7 +139,7 @@ void setup() {
     mcp.pinMode(pinReverse[i], OUTPUT);
   }
 
-  scale.begin(D5, D6); // DOUT = D5 SCK = D6;
+  scale.begin(D5, D6, 64); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
   scale.power_up();
   tareScalesWithCheck(scale_read_times);  
