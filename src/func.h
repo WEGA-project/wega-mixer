@@ -261,12 +261,6 @@ void handleTest(){
   setState(STATE_READY);
 }
 
-
-
-
-
-
-
 void wait(unsigned long ms, int step) {
   unsigned long endPreloadTime = millis() + ms; 
   while (millis() < endPreloadTime) {
