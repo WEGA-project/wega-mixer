@@ -81,6 +81,7 @@ void sendReportUpdate() {
     appendJsonArr(message, F("goal"),   goal,   PUMPS_NO,  false, false);
     appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, true);
   });  
+
 }
 
 void handleSubscribe() {
@@ -348,6 +349,7 @@ float pumping(int n) {
     wait(1000, 10);
     return 0;
   }
+ 
 
   printStage(n, F("Tare"));
   tareScalesWithCheck(255);
@@ -376,6 +378,7 @@ float pumping(int n) {
     printPreload(preload);
     wait(2000, 10);
   }
+  EEPROM.put(2, staticPreload);  
   
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
   printStage(n, F("Fast"));
@@ -393,6 +396,7 @@ float pumping(int n) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
+      EEPROM.put(1, goal);   
     }
   }
   
@@ -417,6 +421,7 @@ float pumping(int n) {
     
     server.handleClient();
     sendReportUpdate();
+    EEPROM.put(1, goal);   
   }
 
   // реверс, высушить трубки
@@ -482,6 +487,8 @@ void handleStart() {
   }
  
   okPage();
+  
+  EEPROM.put(0, curvol);   
 
   float offsetBeforePump = scale.get_offset();
   scale.set_scale(scale_calibration_A);

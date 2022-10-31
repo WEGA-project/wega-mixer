@@ -16,7 +16,7 @@ const char FW_version[] PROGMEM = "2.3.0";
 #include <LiquidCrystal_I2C.h>
 #include <HX711.h>
 #include <Adafruit_MCP23017.h>
-
+#include <EEPROM.h>
 #include <config.h>
 
 // Assign ports names
@@ -141,6 +141,12 @@ void setup() {
   
   lcd.clear();
   setState(STATE_READY);
+  
+  EEPROM.get(0, curvol);  
+  EEPROM.get(1, goal);  
+  EEPROM.get(2, staticPreload);  
+
+
 }
 
 void loop() {
