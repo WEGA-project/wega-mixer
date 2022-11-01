@@ -30,26 +30,24 @@ String wegaauth = "YOUR_SECRET_AUTH_KEY";
 String wegadb = "mixer";
 
 
-
 // web hpg calculator intergration
 // заменить только токен на свой, остальные параметры передаются с калькулятора
-// работает при передачи параметров с веь калькулятора - в других случаях отклчюено
-const char* calc_token = "123123123-123123123-123-123-123123123123";
-const char* calc_url   = "calc.progl.su";
+// работает при передачи параметров с веь калькулятора - в других случаях отключено
+const char* calc_token = 123123123-123123123-123-123-123123123123";
+const char* calc_url  = "calc.progl.su";
 const char* calc_mqtt_user = "mixer";
 const char* calc_mqtt_password = "mixer2022";
 int calc_mixer_id=0;
-int mixing_id = 0;
-int value = 0;
- 
+int calc_mixing_id = 0;
 
-// #MQTT PUB SUB
+// #MQTT PUB SUB CALC INTEGRATION
 uint16_t calc_mqtt_port = 1883;
 #define MSG_BUFFER_SIZE	(512)
 char mqtt_msg[MSG_BUFFER_SIZE];
 WiFiClient mqtt_wclient;
 PubSubClient mqqt_client(mqtt_wclient);
 
+// stage for global messaging
 String stage;
 
 // Pump #1
