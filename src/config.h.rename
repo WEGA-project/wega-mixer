@@ -36,9 +36,9 @@ String wegadb = "mixer";
 // работает при передачи параметров с веь калькулятора - в других случаях отклчюено
 const char* calc_token = "123123123-123123123-123-123-123123123123";
 const char* calc_url   = "calc.progl.su";
-const char* mqtt_user = "mixer";
-const char* mqtt_password = "mixer2022";
-int mixer_id=0;
+const char* calc_mqtt_user = "mixer";
+const char* calc_mqtt_password = "mixer2022";
+int calc_mixer_id=0;
 int mixing_id = 0;
 int value = 0;
  

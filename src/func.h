@@ -50,9 +50,9 @@ void appendJson(String& src, const __FlashStringHelper* name, const T& value, co
 }
 
 void send_mqtt_msg(String tmsg ){
-  if (!mqqt_client.loop()) { mqqt_client.connect(calc_token, mqtt_user, mqtt_password);  }
-  snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), value);
-  boolean p = mqqt_client.publish("mixer", mqtt_msg);
+  if (!mqqt_client.loop()) { mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password);  }
+  snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), 0);
+  mqqt_client.publish("mixer", mqtt_msg);
 
 }
 
@@ -84,12 +84,12 @@ void appendJsonArr(String& src, const __FlashStringHelper* name, const T value[]
 }
 
 void reportToWebCalc() {
-  if (mixer_id!=0) {
+  if (calc_mixer_id!=0) {
     String message((char*)0);
     message.reserve(512);
     message += '{';
-    appendJson(message, F("mixing_id"), mixer_id,  false, false);
-    appendJson(message, F("mixer_id"), mixer_id,  false, false);
+    appendJson(message, F("mixing_id"), calc_mixing_id,  false, false);
+    appendJson(message, F("mixer_id"), calc_mixer_id,  false, false);
     appendJson(message, F("token"), calc_token,  true, false);
     appendJson(message, F("pumpWorking"), pumpWorking,  false, false);
     appendJson(message, F("stage"), stage,  true, false);
@@ -511,13 +511,10 @@ void reportToWega(int systemId) {
   http.end();
 }
 
-void handleTestApi(){
-  int systemId = server.arg("s").toInt();
-  
-  mixer_id  = server.arg("mixer_id").toInt();
-  mixer_id = server.arg("mixing_id").toInt();
+void handleTestApi(){  
+  calc_mixer_id  = server.arg("mixer_id").toInt();
+  calc_mixing_id = server.arg("mixing_id").toInt();
  
-  
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = random(10, 1000) / 100.0;
     curvol[i] = random(10, 1000) / 100.0;
@@ -530,8 +527,8 @@ void handleTestApi(){
   setState(STATE_READY);
   pumpWorking = -1;
   sendReportUpdate();  
-  mixer_id = 0;
-  mixer_id= 0;
+  calc_mixer_id = 0;
+  calc_mixing_id= 0;
    
 }
 
@@ -544,8 +541,8 @@ void handleStart() {
   sumA = 0;
   sumB = 0;
   int systemId  = server.arg("s").toInt();
-  mixer_id = server.arg("mixer_id").toInt();
-  mixing_id = server.arg("mixing_id").toInt();
+  calc_mixer_id = server.arg("mixer_id").toInt();
+  calc_mixing_id = server.arg("mixing_id").toInt();
 
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
@@ -578,8 +575,8 @@ void handleStart() {
   sendReportUpdate();
   setState(STATE_READY);
   lcd.clear();
-  mixer_id   = 0;
-  mixer_id = 0;
+  calc_mixer_id   = 0;
+  calc_mixer_id = 0;
 }
 
 

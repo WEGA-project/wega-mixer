@@ -149,7 +149,7 @@ void setup() {
   uint16_t buf_size= 512;
   mqqt_client.setBufferSize(buf_size);
   mqqt_client.setServer(calc_url, calc_mqtt_port);
-  mqqt_client.connect(calc_token, mqtt_user, mqtt_password); 
+  mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); 
    
  
  
@@ -166,6 +166,6 @@ void loop() {
     lastSentTime = millis();
     sendScalesValue();  
     }
-  if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, mqtt_user, mqtt_password); }
+  if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); }
   delay(100);
 }
