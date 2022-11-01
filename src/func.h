@@ -221,6 +221,8 @@ float pumping(float wt, int npump, int npumpr, String nm, int preload)
     lcd.print("SKIP..   ");
     delay(1000);
     server.handleClient();
+
+    return 0;
   }
 }
 
