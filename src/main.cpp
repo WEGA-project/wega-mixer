@@ -2,18 +2,21 @@
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
 
-#define FW_version "ESP32 1.1.a"
+#define FW_version "ESPUNIV 1.1.a"
+#include "pre.h"
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-WebServer server(80);
+#if c_ESP == 32
+  #include <WiFi.h>
+  #include <WiFiClient.h>
+  #include <WebServer.h>
+  #include <ESPmDNS.h>
+  #include <WiFiUdp.h>
+  #include <ArduinoOTA.h>
+  WebServer server(80);
 
-#include <WiFiClient.h>
-#include <HTTPClient.h>
+  #include <WiFiClient.h>
+  #include <HTTPClient.h>
+#endif // c_ESP32
 
 #include <Wire.h>
 #include <Adafruit_MCP23017.h>
@@ -57,7 +60,7 @@ float RawStartA, RawEndA, RawStartB, RawEndB;
 String wstatus, wpomp;
 float mTimes, eTimes;
 
-#include "pre.h"
+
 #include "style.h"
 #include "func.h"
 

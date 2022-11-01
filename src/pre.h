@@ -10,6 +10,10 @@
 // git update-index --no-assume-unchanged mixer/mixer.ino   //
 //////////////////////////////////////////////////////////////
 
+
+#define c_ESP 32 // 8266 or 32
+
+
 // WiFi network configuration
 const char* ssid = "YOUR_WIFI_NETWORK_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";

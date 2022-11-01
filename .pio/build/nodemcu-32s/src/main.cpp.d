@@ -1,4 +1,4 @@
-.pio/build/nodemcu-32s/src/main.cpp.o: src/main.cpp \
+.pio/build/nodemcu-32s/src/main.cpp.o: src/main.cpp src/pre.h \
  /home/siv/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFi.h \
  /home/siv/.platformio/packages/framework-arduinoespressif32/cores/esp32/Print.h \
  /home/siv/.platformio/packages/framework-arduinoespressif32/cores/esp32/WString.h \
@@ -244,5 +244,4 @@
  /home/siv/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h \
  .pio/libdeps/nodemcu-32s/Adafruit\ MCP23017\ Arduino\ Library/Adafruit_MCP23017.h \
  .pio/libdeps/nodemcu-32s/LiquidCrystal_I2C/LiquidCrystal_I2C.h \
- .pio/libdeps/nodemcu-32s/HX711/src/HX711.h src/pre.h src/style.h \
- src/func.h
+ .pio/libdeps/nodemcu-32s/HX711/src/HX711.h src/style.h src/func.h
