@@ -1,13 +1,12 @@
-#ifndef Adafruit_BusIO_Register_h
-#define Adafruit_BusIO_Register_h
-
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_SPIDevice.h>
 #include <Arduino.h>
 
 #if !defined(SPI_INTERFACES_COUNT) ||                                          \
     (defined(SPI_INTERFACES_COUNT) && (SPI_INTERFACES_COUNT > 0))
 
-#include <Adafruit_I2CDevice.h>
-#include <Adafruit_SPIDevice.h>
+#ifndef Adafruit_BusIO_Register_h
+#define Adafruit_BusIO_Register_h
 
 typedef enum _Adafruit_BusIO_SPIRegType {
   ADDRBIT8_HIGH_TOREAD = 0,
@@ -80,7 +79,7 @@ private:
   Adafruit_BusIO_SPIRegType _spiregtype;
   uint16_t _address;
   uint8_t _width, _addrwidth, _byteorder;
-  uint8_t _buffer[4]; // we won't support anything larger than uint32 for
+  uint8_t _buffer[4]; // we wont support anything larger than uint32 for
                       // non-buffered read
   uint32_t _cached = 0;
 };
@@ -101,5 +100,6 @@ private:
   uint8_t _bits, _shift;
 };
 
-#endif // SPI exists
 #endif // BusIO_Register_h
+
+#endif // SPI exists

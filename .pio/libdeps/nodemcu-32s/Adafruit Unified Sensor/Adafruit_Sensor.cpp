@@ -61,9 +61,6 @@ void Adafruit_Sensor::printSensorDetails(void) {
   case SENSOR_TYPE_COLOR:
     Serial.print(F("Color (RGBA)"));
     break;
-  case SENSOR_TYPE_TVOC:
-    Serial.print(F("Total Volatile Organic Compounds (ppb)"));
-    break;
   }
 
   Serial.println();

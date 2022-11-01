@@ -4,7 +4,7 @@
 
 #define FW_version "ESPUNIV 1.1.a"
 
-#define c_ESP 8266 // 8266 or 32
+//#define c_ESP 8266 // 8266 or 32
 
 
 #if c_ESP == 32
