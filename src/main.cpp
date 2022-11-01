@@ -29,25 +29,7 @@
   #include <WiFiClient.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
-  
 
-  
-  
-
-
-
-// #if c_ESP == 8266
-
-//   #include <WiFiClient.h>
-//   
-//   
-//   #include <WiFiUdp.h>
-//   #include <ArduinoOTA.h>
-//   ESP8266WebServer server(80);
-
-//   #include <WiFiClient.h>
-//   
-// #endif // c_ESP8266
 
 #include <Wire.h>
 #include <Adafruit_MCP23017.h>
