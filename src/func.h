@@ -249,8 +249,7 @@ void pumpReverse(int n) {
 }
 
 void handleTest(){
-  if (state != STATE_READY) return busyPage(); 
-
+  if (state != STATE_READY) return busyPage();
   setState(STATE_BUSY);
   okPage();
   for (byte i = 0; i < PUMPS_NO; i++) {
