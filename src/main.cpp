@@ -4,40 +4,49 @@
 
 #define FW_version "ESPUNIV 1.1.a"
 
-#define c_ESP 32 // 8266 or 32
+#define c_ESP 8266 // 8266 or 32
 
 
 #if c_ESP == 32
   #include <WiFi.h>
+  #include <WebServer.h>
+  #include <ESPmDNS.h>
+  #include <HTTPClient.h>
+  
+
+  WebServer server(80);
 #endif // c_ESP32
 
 #if c_ESP == 8266
   #include <ESP8266WiFi.h>
+  #include <ESP8266WebServer.h>
+  #include <ESP8266mDNS.h>
+  #include <ESP8266HTTPClient.h>
+
+  ESP8266WebServer server(80);
 #endif // c_ESP8266
 
   #include <WiFiClient.h>
-  #include <WebServer.h>
-  #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
-  WebServer server(80);
+  
 
-  #include <WiFiClient.h>
-  #include <HTTPClient.h>
+  
+  
 
 
 
 // #if c_ESP == 8266
-//   #include <ESP8266WiFi.h>
+
 //   #include <WiFiClient.h>
-//   #include <ESP8266WebServer.h>
-//   #include <ESP8266mDNS.h>
+//   
+//   
 //   #include <WiFiUdp.h>
 //   #include <ArduinoOTA.h>
 //   ESP8266WebServer server(80);
 
 //   #include <WiFiClient.h>
-//   #include <ESP8266HTTPClient.h>
+//   
 // #endif // c_ESP8266
 
 #include <Wire.h>

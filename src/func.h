@@ -56,7 +56,7 @@ void tareScalesWithCheck(int times)
 
 // Функции помп
 // Pump function
-float PumpStart(int npump, int npumpr)
+void PumpStart(int npump, int npumpr)
 {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT);
@@ -64,7 +64,8 @@ float PumpStart(int npump, int npumpr)
   mcp.digitalWrite(npump, HIGH);
   mcp.digitalWrite(npumpr, LOW);
 }
-float PumpStop(int npump, int npumpr)
+
+void PumpStop(int npump, int npumpr)
 {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT);
@@ -72,7 +73,8 @@ float PumpStop(int npump, int npumpr)
   mcp.digitalWrite(npump, LOW);
   mcp.digitalWrite(npumpr, LOW);
 }
-float PumpReverse(int npump, int npumpr)
+
+void PumpReverse(int npump, int npumpr)
 {
   mcp.begin();
   mcp.pinMode(npump, OUTPUT);
