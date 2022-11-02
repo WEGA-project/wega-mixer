@@ -75,20 +75,27 @@ function loadMeta() {
     }).catch(e => setTimeout(loadMeta, 5000));
 }
 
+function resumeEnable(event){
+      if (event.state == "Pause") {
+        document.getElementById("resume").disabled=false;
+        document.getElementById("pause").disabled=true;
+    } else if (event.state == "Resume") 
+     {
+        document.getElementById("resume").disabled=true;
+        document.getElementById("pause").disabled=false;
+    } 
+    else {
+        document.getElementById("resume").disabled=true;
+        document.getElementById("pause").disabled=false;
+    }
+    
+    
+}
+
 function onStateUpdate(event) {
     document.getElementById('state').textContent = event.state;
     document.querySelectorAll("input:not(#pause #resume)").forEach(e => e.disabled = (event.state != "Ready"));
-    if (event.state == "Resume"){
-        document.getElementById("pause").disabled=false;
-    }
-    if (event.state == "Pause") {
-        document.getElementById("resume").disabled=false;
-    }
-    if (event.state != "Pause") {
-        document.getElementById("resume").disabled=true;
-    }
-
-    
+    resumeEnable(event);
 }
 
 function onScalesUpdate(event) {

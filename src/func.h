@@ -385,9 +385,13 @@ void printResult(float value) {
 float pumping(int n) {
 
   pumpWorking = n;
+  float pause_saved_weight = 0;
   server.handleClient();
   sendReportUpdate();
-
+  if (state == STATE_PAUSE) { return 0; }
+  if (!curvol[n]==0){
+    pause_saved_weight = curvol[n];
+  }
   if (goal[n] <= 0 or (curvol[n] > 0 and curvol[n] > goal[n] - 0.01 )) {
     printStage(n, F("Skip"));
     printProgress(F("SKIP"));
@@ -411,7 +415,7 @@ float pumping(int n) {
     pumpReverse(n); wait(preload, 10); pumpStop(n);
     printPreload(preload);
     pumpStart(n); wait(preload, 10); pumpStop(n);
-    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
+    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times)) + pause_saved_weight;
     server.handleClient();
     sendReportUpdate();
         if (state == STATE_PAUSE) { return 0; }
@@ -419,7 +423,7 @@ float pumping(int n) {
   } else { // прелоад до первой капли
     while (curvol[n] < 0.02) {
       preload += pumpToValue(n, 0.03, staticPreload[n] * 2, 0.1, printProgressValueOnly);
-      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
+      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times)) + pause_saved_weight ;
       server.handleClient();
       sendReportUpdate();
           if (state == STATE_PAUSE) { return 0; }
@@ -444,7 +448,7 @@ float pumping(int n) {
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long workedTime = pumpToValue(n, curvol[n] + valueToPump, timeToPump, allowedOscillation, printProgress);
       float prevValue = curvol[n];
-      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
+      curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times)) + pause_saved_weight;
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
@@ -470,7 +474,7 @@ float pumping(int n) {
     delay(sk+dk);
     pumpStop(n);
     float prevValue = curvol[n];
-    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times*scale_modificator));
+    curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times*scale_modificator))+ pause_saved_weight;
     if (curvol[n] - prevValue < 0.01) {sk = min(80, sk + 2);}
     if (curvol[n] - prevValue > 0.01) {sk = max(2, sk - 2);}
     if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
@@ -559,9 +563,10 @@ void handleStart() {
   sumA = 0;
   sumB = 0;
   int systemId  = server.arg("s").toInt();
-  calc_mixer_id = server.arg("mixer_id").toInt();
-  calc_mixing_id = server.arg("mixing_id").toInt();
+  
   if (!from_resume_sate) {
+    calc_mixer_id = server.arg("mixer_id").toInt();
+    calc_mixing_id = server.arg("mixing_id").toInt();
     for (byte i = 0; i < PUMPS_NO; i ++) {
       goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
       curvol[i] = 0;
@@ -604,17 +609,17 @@ void handleStart() {
 }
 
 void handlePause(){
-  if (state != STATE_READY) return busyPage(); 
-  okPage();
+ 
+  
   setState(STATE_PAUSE);
+  okPage();
 }
 
-void handleResume(){
-  if (state != STATE_PAUSE) return busyPage(); 
+void handleResume(){  
+  setState(STATE_RESUME);
   okPage();
-  setState(STATE_READY);
   handleStart();
 }
 
  
-
+//  document.getElementById("pause").disabled=false;  document.getElementById("resume").disabled=false;

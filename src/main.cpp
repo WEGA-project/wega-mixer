@@ -14,6 +14,11 @@ const char FW_version[] PROGMEM = "2.3.0";
   ESP8266WebServer server(80);
   const int LOADCELL_DOUT_PIN = D5;
   const int LOADCELL_SCK_PIN = D6;
+  
+  const int WIRE_PIN_SDA = D1;
+  const int WIRE_PIN_SCL = D2;
+
+ 
   WiFiClient subscription[SSE_MAX_CHANNELS];
   #include <func8266.h>
 #endif
@@ -27,6 +32,8 @@ const char FW_version[] PROGMEM = "2.3.0";
   WebServer server(80);
   const int LOADCELL_DOUT_PIN = 13;
   const int LOADCELL_SCK_PIN = 14;
+    const int WIRE_PIN_SDA = T1;
+  const int WIRE_PIN_SCL = T2;
   #include <func32.h>
 #endif
 
@@ -101,7 +108,7 @@ void setState(State s);
 void setup() {
   Serial.begin(9600);
   Serial.println("setup");
-  Wire.begin();
+  Wire.begin(WIRE_PIN_SDA, WIRE_PIN_SCL);
   
   lcd.init(); 
   lcd.backlight();
@@ -160,9 +167,6 @@ void setup() {
   mqqt_client.setServer(calc_url, calc_mqtt_port);
   mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); 
    
- 
- 
-  
   EEPROM.get(0, curvol);  
   EEPROM.get(1, goal);  
   EEPROM.get(2, staticPreload);  
