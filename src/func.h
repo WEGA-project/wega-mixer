@@ -208,18 +208,18 @@ float readScalesWithCheck(int times) {
 
 
 void handleMeasure() {
-    if (state != STATE_READY) return busyPage(); 
-    setState(STATE_BUSY);    
-    float rawValue = readScalesWithCheck(scale_read_times);
-    String message((char*)0);
-    message.reserve(255);
-    message += '{';
-    appendJson(message, F("value"),    rawToUnits(rawValue),  false, false);
-    appendJson(message, F("rawValue"), rawValue,              false, false);
-    appendJson(message, F("rawZero"),  scale.get_offset(),    false, true);
-    message += '}';
-    server.send(200, "application/json", message);
-    setState(STATE_READY);
+  if (state != STATE_READY) return busyPage(); 
+  setState(STATE_BUSY);    
+  float rawValue = readScalesWithCheck(scale_read_times);
+  String message((char*)0);
+  message.reserve(255);
+  message += '{';
+  appendJson(message, F("value"),    rawToUnits(rawValue),  false, false);
+  appendJson(message, F("rawValue"), rawValue,              false, false);
+  appendJson(message, F("rawZero"),  scale.get_offset(),    false, true);
+  message += '}';
+  server.send(200, "application/json", message);
+  setState(STATE_READY);
 } 
 
 // |          Ready |
