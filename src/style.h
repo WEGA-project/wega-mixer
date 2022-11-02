@@ -1,12 +1,10 @@
 const char CSS_page[] PROGMEM = R"=====(
 .button { width:105px; height:26px; font-size:0.8em; }
 form {
-    margin: 0 auto;
+    margin: left;
     width: 500px;
     padding: 1em;
-    position:absolute;
-    top: 0; 
-    left: 0;
+    
 }
 )=====";
 
@@ -43,11 +41,25 @@ const char MAIN_page[] PROGMEM = R"=====(
         <input id="pause" type='button' onclick="f_pause();" value='Pause'/>
         <input id="resume" type='button' onclick="f_resume();" value='Resume'/>
 
+      
+
         <input type='button' onclick="tare();" value='Tare'/>
         <input type='button' onclick='location.href = "calibration";' value='Calibration'/>
     </p>
-ver: <span id='version'></span>
+    ver: <span id='version'></span>
 </form>
+
+<form action="/rest/reverse">
+    Pumps dry:
+    <fieldset>
+        <p> 
+            reverse time = <input type='text' name='reverse_time' value="10"/>  
+        </p> 
+    </fieldset>    
+    <input id="reverse" type='submit'  value='Reverse'/>
+    
+</form>
+
 <script>
 function loadMeta() {
     fetch('/rest/meta').then(r => r.json()).then(r => {
@@ -142,6 +154,9 @@ function f_pause() {
     })
     .catch(e => document.getElementById("state").textContent = e);
 }
+
+ 
+
 
 function f_resume() {
     document.getElementById("state").textContent = "Resuming";

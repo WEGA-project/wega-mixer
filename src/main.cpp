@@ -83,8 +83,8 @@ const char* names[PUMPS_NO]        = {pump1n, pump2n, pump3n, pump4n, pump5n, pu
 const byte pinForward[PUMPS_NO]    = {pump1,  pump2,  pump3,  pump4,  pump5,  pump6,  pump7,  pump8};
 const byte pinReverse[PUMPS_NO]    = {pump1r, pump2r, pump3r, pump4r, pump5r, pump6r, pump7r, pump8r};
 const long staticPreload[PUMPS_NO] = {pump1p, pump2p, pump3p, pump4p, pump5p, pump6p, pump7p, pump8p};
-const char* stateStr[]             = {"Ready", "Working", "Busy", "Pause", "Resume"};
-enum State {STATE_READY, STATE_WORKING, STATE_BUSY, STATE_PAUSE, STATE_RESUME};
+const char* stateStr[]             = {"Ready", "Working", "Busy", "Pause", "Resume", "Reverse"};
+enum State {STATE_READY, STATE_WORKING, STATE_BUSY, STATE_PAUSE, STATE_RESUME, STATE_REVERSE};
 
 
 float goal[PUMPS_NO];
@@ -136,6 +136,9 @@ void setup() {
   server.on("/rest/test-api",    handleTestApi);
   server.on("/rest/pause",    handlePause);
   server.on("/rest/resume",   handleResume);
+  server.on("/rest/reverse",   handleReverse);
+
+  
 
   server.on("/",             mainPage);
   server.on("/calibration",  calibrationPage);

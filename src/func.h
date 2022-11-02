@@ -115,6 +115,7 @@ void sendReportUpdate() {
     appendJson(message,    F("sumA"),   sumA,              false, false);
     appendJson(message,    F("sumB"),   sumB,              false, false);
     appendJson(message,    F("pumpWorking"), pumpWorking,  false, false); 
+    appendJson(message,    F("state"), state,  false, false); 
     appendJsonArr(message, F("goal"),   goal,   PUMPS_NO,  false, false);
     appendJsonArr(message, F("result"), curvol, PUMPS_NO,  false, true);
   });  
@@ -213,7 +214,6 @@ float readScalesWithCheck(int times) {
   }
 }
  
-
 
 void handleMeasure() {
   if (state != STATE_READY) return busyPage(); 
@@ -535,7 +535,7 @@ void reportToWega(int systemId) {
 void handleTestApi(){  
   calc_mixer_id  = server.arg("mixer_id").toInt();
   calc_mixing_id = server.arg("mixing_id").toInt();
- 
+
   for (byte i = 0; i < PUMPS_NO; i ++) {
     goal[i] = random(10, 1000) / 100.0;
     curvol[i] = random(10, 1000) / 100.0;
@@ -572,27 +572,23 @@ void handleStart() {
       curvol[i] = 0;
     }
   }
-  
+
   okPage();
-  
   EEPROM.put(0, curvol);   
-
   if (!from_resume_sate){ offsetBeforePump = scale.get_offset(); }
-
   scale.set_scale(scale_calibration_A);
   if (!from_resume_sate){raw1 = readScalesWithCheck(scale_read_times);}
-  pumping(0);
-  pumping(1);
-  pumping(2);
+  pumping(0); if (state == STATE_PAUSE) { return; }
+  pumping(1); if (state == STATE_PAUSE) { return; }
+  pumping(2); if (state == STATE_PAUSE) { return; }
   if (!from_resume_sate){raw2 = readScalesWithCheck(scale_read_times);}
   sumA = (raw2 - raw1) / scale_calibration_A;
-  // delay(1000);
   scale.set_scale(scale_calibration_B); 
-  pumping(3);
-  pumping(4);
-  pumping(5);
-  pumping(6);
-  pumping(7); 
+  pumping(3); if (state == STATE_PAUSE) { return; }
+  pumping(4); if (state == STATE_PAUSE) { return; }
+  pumping(5); if (state == STATE_PAUSE) { return; }
+  pumping(6); if (state == STATE_PAUSE) { return; }
+  pumping(7); if (state == STATE_PAUSE) { return; }
   pumpWorking = -1;
   if (state == STATE_PAUSE) { return ; }
   if (!from_resume_sate){raw3 = readScalesWithCheck(scale_read_times);}
@@ -609,8 +605,6 @@ void handleStart() {
 }
 
 void handlePause(){
- 
-  
   setState(STATE_PAUSE);
   okPage();
 }
@@ -620,6 +614,20 @@ void handleResume(){
   okPage();
   handleStart();
 }
-
- 
-//  document.getElementById("pause").disabled=false;  document.getElementById("resume").disabled=false;
+void handleReverse(){  
+  setState(STATE_REVERSE);
+  okPage();
+  long preload  = server.arg("reverse_time").toInt()*1000;
+  stage = "Dry";
+  for (byte n = 0; n < PUMPS_NO; n++) {
+      sendReportUpdate();  
+      sendState();
+      printStage(n, F("Dry"));
+      printResult(curvol[n]);
+      pumpReverse(n);
+      wait(preload, 10); 
+      pumpStop(n);
+  }
+  sendReportUpdate();  
+  setState(STATE_READY); 
+}
