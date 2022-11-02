@@ -39,6 +39,10 @@ const char MAIN_page[] PROGMEM = R"=====(
     <input type='hidden' name='mixer_id'>
     <p id='actions'>
         <input type='submit' value='Start'/>
+
+        <input id="pause" type='button' onclick="f_pause();" value='Pause'/>
+        <input id="resume" type='button' onclick="f_resume();" value='Resume'/>
+
         <input type='button' onclick="tare();" value='Tare'/>
         <input type='button' onclick='location.href = "calibration";' value='Calibration'/>
     </p>
@@ -73,7 +77,18 @@ function loadMeta() {
 
 function onStateUpdate(event) {
     document.getElementById('state').textContent = event.state;
-    document.querySelectorAll("input").forEach(e => e.disabled = (event.state != "Ready"));
+    document.querySelectorAll("input:not(#pause #resume)").forEach(e => e.disabled = (event.state != "Ready"));
+    if (event.state == "Resume"){
+        document.getElementById("pause").disabled=false;
+    }
+    if (event.state == "Pause") {
+        document.getElementById("resume").disabled=false;
+    }
+    if (event.state != "Pause") {
+        document.getElementById("resume").disabled=true;
+    }
+
+    
 }
 
 function onScalesUpdate(event) {
@@ -108,6 +123,27 @@ function tare() {
         throw new Error('Busy try later');
     })
     .catch(e => document.getElementById("weight").textContent = e);
+}
+
+
+function f_pause() {
+    document.getElementById("state").textContent = "Pausing";
+    fetch("/rest/pause")
+    .then(r => {
+        if (r.ok) return document.getElementById("state").textContent = "Paused";
+        throw new Error('Busy try later');
+    })
+    .catch(e => document.getElementById("state").textContent = e);
+}
+
+function f_resume() {
+    document.getElementById("state").textContent = "Resuming";
+    fetch("/rest/resume")
+    .then(r => {
+        if (r.ok) return document.getElementById("state").textContent = "Resumed";
+        throw new Error('Busy try later');
+    })
+    .catch(e => document.getElementById("state").textContent = e);
 }
 
 

@@ -3,6 +3,11 @@
 #define SSE_MAX_CHANNELS 8
 WiFiClient subscription[SSE_MAX_CHANNELS];
 unsigned long lastSentTime = 0;
+float raw2;
+float raw1;
+float raw3;
+float offsetBeforePump;
+
 
 // server sent events
 bool checkConnected() {
@@ -315,6 +320,7 @@ long pumpToValue(byte n, float capValue, float capMillis, float allowedOscillati
   pumpStart(n);
   char exitCode;
   for (long i = 0; true; i+=10) { 
+    if (state == STATE_PAUSE) { break; }
     if (value >= capValue) {
       exitCode = 'V'; // вес достиг заданный
       break;
@@ -379,7 +385,7 @@ float pumping(int n) {
   server.handleClient();
   sendReportUpdate();
 
-  if (goal[n] <= 0) {
+  if (goal[n] <= 0 or (curvol[n] > 0 and curvol[n] > goal[n] - 0.01 )) {
     printStage(n, F("Skip"));
     printProgress(F("SKIP"));
     wait(1000, 10);
@@ -395,6 +401,7 @@ float pumping(int n) {
   printStage(n, F("Load"));
 
   long preload = 0;
+ 
   if (goal[n] < 0.5) { // статический прелоад
     preload = staticPreload[n];
     printProgress(F("Reverse"));
@@ -404,6 +411,7 @@ float pumping(int n) {
     curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
     server.handleClient();
     sendReportUpdate();
+        if (state == STATE_PAUSE) { return 0; }
     delay(10);
   } else { // прелоад до первой капли
     while (curvol[n] < 0.02) {
@@ -411,6 +419,7 @@ float pumping(int n) {
       curvol[n] = rawToUnits(readScalesWithCheck(scale_read_times));
       server.handleClient();
       sendReportUpdate();
+          if (state == STATE_PAUSE) { return 0; }
     }
     printPreload(preload);
     wait(2000, 10);
@@ -427,6 +436,7 @@ float pumping(int n) {
   float allowedOscillation = valueToPump < 1.0 ? 1.5 : 3.0;  // допустимое раскачивание, чтобы остановиться при помехах/раскачивании, важно на малых объемах  
   if (valueToPump > 0.3) { // если быстро качать не много то не начинать даже
     while ((valueToPump = goal[n] - curvol[n] - dropTreshold) > 0) {
+      if (state == STATE_PAUSE) { return 0; }
       if (valueToPump > 0.2) valueToPump = valueToPump / 2;  // качать по половине от остатка
       long timeToPump = valueToPump / performance;           // ограничение по времени
       long workedTime = pumpToValue(n, curvol[n] + valueToPump, timeToPump, allowedOscillation, printProgress);
@@ -449,6 +459,7 @@ float pumping(int n) {
   int dk = 50;
   int scale_modificator = 1;
   while (curvol[n] < goal[n]) {
+    if (state == STATE_PAUSE) { return 0; }
     printProgress(curvol[n], sk);
     pumpReverse(n);
     delay(dk);
@@ -536,8 +547,9 @@ void handleTestApi(){
 }
 
 void handleStart() {
-  if (state != STATE_READY) return busyPage(); 
-  
+  if (state != STATE_READY and state != STATE_RESUME ) return busyPage(); 
+  boolean from_resume_sate = false;
+  if (state == STATE_RESUME) {from_resume_sate = true;}
   setState(STATE_WORKING);  
   sTime = millis();
   eTime = 0;
@@ -546,23 +558,25 @@ void handleStart() {
   int systemId  = server.arg("s").toInt();
   calc_mixer_id = server.arg("mixer_id").toInt();
   calc_mixing_id = server.arg("mixing_id").toInt();
-
-  for (byte i = 0; i < PUMPS_NO; i ++) {
-    goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
-    curvol[i] = 0;
+  if (!from_resume_sate) {
+    for (byte i = 0; i < PUMPS_NO; i ++) {
+      goal[i] = server.arg(String(F("p")) + (i + 1)).toFloat();
+      curvol[i] = 0;
+    }
   }
- 
+  
   okPage();
   
   EEPROM.put(0, curvol);   
 
-  float offsetBeforePump = scale.get_offset();
+  if (!from_resume_sate){ offsetBeforePump = scale.get_offset(); }
+
   scale.set_scale(scale_calibration_A);
-  float raw1 = readScalesWithCheck(scale_read_times);
+  if (!from_resume_sate){raw1 = readScalesWithCheck(scale_read_times);}
   pumping(0);
   pumping(1);
   pumping(2);
-  float raw2 = readScalesWithCheck(scale_read_times);   
+  if (!from_resume_sate){raw2 = readScalesWithCheck(scale_read_times);}
   sumA = (raw2 - raw1) / scale_calibration_A;
   // delay(1000);
   scale.set_scale(scale_calibration_B); 
@@ -572,7 +586,8 @@ void handleStart() {
   pumping(6);
   pumping(7); 
   pumpWorking = -1;
-  float raw3 = readScalesWithCheck(scale_read_times); 
+  if (state == STATE_PAUSE) { return ; }
+  if (!from_resume_sate){raw3 = readScalesWithCheck(scale_read_times);}
   sumB = (raw3 - raw2) / scale_calibration_B;
   reportToWega(systemId);
   scale.set_scale(scale_calibration_A);
@@ -585,6 +600,18 @@ void handleStart() {
   calc_mixer_id = 0;
 }
 
+void handlePause(){
+  if (state != STATE_READY) return busyPage(); 
+  okPage();
+  setState(STATE_PAUSE);
+}
+
+void handleResume(){
+  if (state != STATE_PAUSE) return busyPage(); 
+  okPage();
+  setState(STATE_READY);
+  handleStart();
+}
 
  
 
