@@ -4,45 +4,46 @@
 // main code - don't change if you don't know what you are doing //
 ///////////////////////////////////////////////////////////////////
 const char FW_version[] PROGMEM = "2.3.0";
+#define SSE_MAX_CHANNELS 8
 
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+#if mixerplatform == 8266
+  #include <ESP8266WiFi.h>
+  #include <ESP8266WebServer.h>
+  #include <ESP8266mDNS.h>
+  #include <ESP8266HTTPClient.h>
+  ESP8266WebServer server(80);
+  const int LOADCELL_DOUT_PIN = D5;
+  const int LOADCELL_SCK_PIN = D6;
+  WiFiClient subscription[SSE_MAX_CHANNELS];
+  #include <func8266.h>
+#endif
+
+#if mixerplatform == 32
+  #include <WiFi.h>
+  #include <WebServer.h>
+  #include <mDNS.h>
+  #include <HTTPClient.h>
+  WiFiClient subscription[SSE_MAX_CHANNELS];
+  WebServer server(80);
+  const int LOADCELL_DOUT_PIN = 13;
+  const int LOADCELL_SCK_PIN = 14;
+  #include <func32.h>
+#endif
+
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <HX711.h>
 #include <Adafruit_MCP23017.h>
 #include <PubSubClient.h>
-
 #include <EEPROM.h>
 #include <config.h>
 
-// Assign ports names
-// Here is the naming convention:
-// A0=0 .. A7=7
-// B0=8 .. B7=15
-// That means if you have A0 == 0 B0 == 8 (this is how it's on the board B0/A0 == 8/0)
-// one more example B3/A3 == 11/3
-#define A0 0
-#define A1 1
-#define A2 2
-#define A3 3
-#define A4 4
-#define A5 5
-#define A6 6
-#define A7 7
-#define B0 8
-#define B1 9
-#define B2 10
-#define B3 11
-#define B4 12
-#define B5 13
-#define B6 14
-#define B7 15
+
+
+
 
 class Kalman { // https://github.com/denyssene/SimpleKalmanFilter
   private:
@@ -90,7 +91,7 @@ unsigned long sTime, eTime;
 Adafruit_MCP23017 mcp;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
 HX711 scale;
-ESP8266WebServer server(80);
+
 State state;
 void setState(State s);
 
@@ -100,7 +101,8 @@ void setState(State s);
 void setup() {
   Serial.begin(9600);
   Serial.println("setup");
-  Wire.begin(D1, D2);
+  Wire.begin();
+  
   lcd.init(); 
   lcd.backlight();
 
@@ -115,9 +117,9 @@ void setup() {
   lcd.print(WiFi.localIP()); 
 
   Serial.println(WiFi.localIP());
-
-  MDNS.begin("mixer");
-  MDNS.addService("http", "tcp", 80);
+ 
+ 
+  
   server.on("/rest/events",  handleSubscribe);
   server.on("/rest/meta",    handleMeta);
   server.on("/rest/start",   handleStart);
@@ -145,7 +147,8 @@ void setup() {
     mcp.pinMode(pinReverse[i], OUTPUT);
   }
 
-  scale.begin(D5, D6); // DOUT = D5 SCK = D6;
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
   scale.power_up();
   tareScalesWithCheck(scale_read_times);  
@@ -173,7 +176,7 @@ void loop() {
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
   server.handleClient();
   ArduinoOTA.handle();
-  MDNS.update();
+  mdns_update();
   if (lastSentTime + 5000 < millis()) {
     lastSentTime = millis();
     sendScalesValue();  

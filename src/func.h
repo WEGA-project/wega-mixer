@@ -1,7 +1,7 @@
 #include <style.h>
 
-#define SSE_MAX_CHANNELS 8
-WiFiClient subscription[SSE_MAX_CHANNELS];
+
+
 unsigned long lastSentTime = 0;
 float raw2;
 float raw1;
@@ -9,11 +9,13 @@ float raw3;
 float offsetBeforePump;
 
 
+
+ 
 // server sent events
 bool checkConnected() {
   bool result = false;
   for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++) {
-    if (!subscription[i] || subscription[i].status() == CLOSED) {
+    if (!subscription[i] || is_closed(i) ) {
       continue;
     } else if (subscription[i].connected()) {
       result = true;
@@ -123,9 +125,10 @@ void sendReportUpdate() {
 
 void handleSubscribe() {
   for (int i = 0; i < SSE_MAX_CHANNELS; i++) {
-    if (!subscription[i] || subscription[i].status() == CLOSED) {
+    if (!subscription[i] || is_closed(i) ) {
       server.client().setNoDelay(true);
-      server.client().setSync(true);
+      set_sync_client(server.client());
+      // server.client().setSync(true);
       subscription[i] = server.client();
       
       server.setContentLength(CONTENT_LENGTH_UNKNOWN);
