@@ -4,17 +4,18 @@
 
 #define FW_version "ESPUNIV 1.1.a"
 
-//#define c_ESP 8266 // 8266 or 32
-
 
 #if c_ESP == 32
   #include <WiFi.h>
   #include <WebServer.h>
   #include <ESPmDNS.h>
   #include <HTTPClient.h>
-  
+    WebServer server(80);
+  const int LOADCELL_DOUT_PIN = 13;
+  const int LOADCELL_SCK_PIN = 14;
 
-  WebServer server(80);
+  const int DRV_ON_PIN1 = 16;
+  const int DRV_ON_PIN2 = 17;  
 #endif // c_ESP32
 
 #if c_ESP == 8266
@@ -22,8 +23,9 @@
   #include <ESP8266WebServer.h>
   #include <ESP8266mDNS.h>
   #include <ESP8266HTTPClient.h>
-
-  ESP8266WebServer server(80);
+    ESP8266WebServer server(80);
+  const int LOADCELL_DOUT_PIN = D5;
+  const int LOADCELL_SCK_PIN = D6;
 #endif // c_ESP8266
 
   #include <WiFiClient.h>
@@ -34,12 +36,31 @@
 #include <Wire.h>
 #include <Adafruit_MCP23017.h>
 Adafruit_MCP23017 mcp;
+
 // Assign ports names
 // Here is the naming convention:
 // A0=0 .. A7=7
 // B0=8 .. B7=15
 // That means if you have A0 == 0 B0 == 8 (this is how it's on the board B0/A0 == 8/0)
 // one more example B3/A3 == 11/3
+#define A0 0
+#define A1 1
+#define A2 2
+#define A3 3
+#define A4 4
+#define A5 5
+#define A6 6
+#define A7 7
+#define B0 8
+#define B1 9
+#define B2 10
+#define B3 11
+#define B4 12
+#define B5 13
+#define B6 14
+#define B7 15
+
+// for ESP32 WEGABOX notation
 #define DRV1_A 0
 #define DRV1_B 1
 #define DRV1_C 2
@@ -57,12 +78,14 @@ Adafruit_MCP23017 mcp;
 #define DRV4_C 14
 #define DRV4_D 15
 
+
+
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F
 
 #include <HX711.h>
-const int LOADCELL_DOUT_PIN = 13;
-const int LOADCELL_SCK_PIN = 14;
+
+
 HX711 scale;
 
 //Коэффициенты фильтрации Кальмана
@@ -278,21 +301,6 @@ void calibrate()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void setup()
 {
   WiFi.mode(WIFI_STA);
@@ -316,6 +324,14 @@ void setup()
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
   ArduinoOTA.onError([](ota_error_t error) {});
   ArduinoOTA.begin();
+
+#if c_ESP == 32
+  // Activate DRV (MAX PWD POWER)
+  pinMode(DRV_ON_PIN1, OUTPUT);
+  pinMode(DRV_ON_PIN2, OUTPUT);
+  digitalWrite(DRV_ON_PIN1, HIGH);
+  digitalWrite(DRV_ON_PIN2, HIGH);
+#endif // c_ESP32
 
   Wire.begin();
   // Wire.setClock(400000L);   // 400 kHz I2C clock speed
