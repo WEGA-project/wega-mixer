@@ -18,7 +18,7 @@ const char FW_version[] PROGMEM = "2.3.0";
 #include <Adafruit_MCP23017.h>
 #include <PubSubClient.h>
 
-
+#include <EEPROM.h>
 #include <config.h>
 
 // Assign ports names
@@ -153,6 +153,12 @@ void setup() {
    
  
  
+  
+  EEPROM.get(0, curvol);  
+  EEPROM.get(1, goal);  
+  EEPROM.get(2, staticPreload);  
+
+
 }
 
 void loop() {

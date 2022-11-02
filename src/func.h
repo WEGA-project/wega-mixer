@@ -415,7 +415,8 @@ float pumping(int n) {
     printPreload(preload);
     wait(2000, 10);
   }
-
+  EEPROM.put(2, staticPreload);  
+  
   // быстрая фаза до конечного веса минус 0.2 - 0.5 грамм по половине от остатка 
   
   stage = "Fast";
@@ -434,6 +435,7 @@ float pumping(int n) {
       if (workedTime > 200 && curvol[n] - prevValue > 0.15) performance = max(performance, (curvol[n] - prevValue) / workedTime);
       server.handleClient();
       sendReportUpdate();
+      EEPROM.put(1, goal);   
       delay(10);
     }
   }
@@ -460,6 +462,7 @@ float pumping(int n) {
     if (curvol[n] - prevValue > 0.1 ) {sk = 0; scale_modificator = 2;}
     server.handleClient();
     sendReportUpdate();
+    EEPROM.put(1, goal);   
   }
 
   // реверс, высушить трубки
@@ -550,6 +553,9 @@ void handleStart() {
   }
  
   okPage();
+  
+  EEPROM.put(0, curvol);   
+
   float offsetBeforePump = scale.get_offset();
   scale.set_scale(scale_calibration_A);
   float raw1 = readScalesWithCheck(scale_read_times);
