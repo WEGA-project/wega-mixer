@@ -45,6 +45,10 @@ const char MAIN_page[] PROGMEM = R"=====(
 
         <input type='button' onclick="tare();" value='Tare'/>
         <input type='button' onclick='location.href = "calibration";' value='Calibration'/>
+        
+        <input id="Reset" type='button' onclick="f_reset();" value='Reset'/>
+
+        
     </p>
     ver: <span id='version'></span>
 </form>
@@ -100,6 +104,7 @@ function resumeEnable(event){
         document.getElementById("resume").disabled=true;
         document.getElementById("pause").disabled=false;
     }
+    document.getElementById("reset").disabled=false;
     
     
 }
@@ -163,6 +168,16 @@ function f_resume() {
     fetch("/rest/resume")
     .then(r => {
         if (r.ok) return document.getElementById("state").textContent = "Resumed";
+        throw new Error('Busy try later');
+    })
+    .catch(e => document.getElementById("state").textContent = e);
+}
+
+function f_reset() {
+    document.getElementById("state").textContent = "Restarting";
+    fetch("/rest/reset")
+    .then(r => {
+        if (r.ok) return document.getElementById("state").textContent = "Reseting....";
         throw new Error('Busy try later');
     })
     .catch(e => document.getElementById("state").textContent = e);

@@ -614,6 +614,19 @@ void handleResume(){
   okPage();
   handleStart();
 }
+
+void handleReset(){  
+  setState(STATE_PAUSE);
+  okPage();
+  ESP.restart();
+}
+
+
+
+ 
+    
+ 
+
 void handleReverse(){  
   setState(STATE_REVERSE);
   okPage();

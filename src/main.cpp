@@ -136,6 +136,7 @@ void setup() {
   server.on("/rest/test-api",    handleTestApi);
   server.on("/rest/pause",    handlePause);
   server.on("/rest/resume",   handleResume);
+  server.on("/rest/reset",   handleReset);
   server.on("/rest/reverse",   handleReverse);
 
   
