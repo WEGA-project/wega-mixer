@@ -50,13 +50,14 @@ PubSubClient mqqt_client(mqtt_wclient);
 // stage for global messaging
 String stage;
 
+
 // Pump #1
 #define pump1  A0        // Port 1
 #define pump1r B0        // Port 2
 #define pump1n "1:Ca"    // Display name
 #define pump1p 4000      // Preload (ms)
 
-// Pump #2
+// Pump #2 t
 #define pump2  A1
 #define pump2r B1
 #define pump2n "2:NK"
@@ -97,3 +98,23 @@ String stage;
 #define pump8r B7
 #define pump8n "8:B"
 #define pump8p 4000
+
+
+
+#define A0 0
+#define A1 1
+#define A2 2
+#define A3 3
+#define A4 4
+#define A5 5
+#define A6 6
+#define A7 7
+#define B0 8
+#define B1 9
+#define B2 10
+#define B3 11
+#define B4 12
+#define B5 13
+#define B6 14
+#define B7 15
+
