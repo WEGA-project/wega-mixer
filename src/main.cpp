@@ -32,8 +32,8 @@ const char FW_version[] PROGMEM = "2.3.0";
   WebServer server(80);
   const int LOADCELL_DOUT_PIN = 13;
   const int LOADCELL_SCK_PIN = 14;
-    const int WIRE_PIN_SDA = T1;
-  const int WIRE_PIN_SCL = T2;
+    const int WIRE_PIN_SDA = 21;
+  const int WIRE_PIN_SCL = 22;
   #include <func32.h>
 #endif
 
@@ -109,8 +109,10 @@ void setup() {
   Serial.begin(9600);
   Serial.println("setup");
   Wire.begin(WIRE_PIN_SDA, WIRE_PIN_SCL);
+  Serial.println("Wire");
   
   lcd.init(); 
+  Serial.println("lcd");
   lcd.backlight();
 
   lcd.setCursor(0, 0);
@@ -119,7 +121,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {delay(500);}
+  while (WiFi.status() != WL_CONNECTED) {delay(500); Serial.println("WiFi.status" + WiFi.status());}
   lcd.setCursor(0, 1); 
   lcd.print(WiFi.localIP()); 
 
@@ -158,11 +160,14 @@ void setup() {
     mcp.pinMode(pinReverse[i], OUTPUT);
   }
 
-
+  Serial.println("scale begin");
   scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN); // DOUT = D5 SCK = D6;
   scale.set_scale(scale_calibration_A);
+  Serial.println("scale scale_calibration_A");
   scale.power_up();
+  Serial.println("scale power_up");
   tareScalesWithCheck(scale_read_times);  
+  Serial.println("scale tareScalesWithCheck");
   lcd.clear();
   setState(STATE_READY);
   readScales(scale_read_times);

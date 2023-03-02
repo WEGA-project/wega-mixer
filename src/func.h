@@ -291,9 +291,11 @@ void handleTest(){
     setState(STATE_BUSY);
     okPage();
     for (byte i = 0; i < PUMPS_NO; i++) {
+
       printStage(i, F("Start")); pumpStart(i); delay(3000);
       printStage(i, F("Revers")); pumpReverse(i); delay(3000);
       printStage(i, F("Stop"));  pumpStop(i); delay(1000);
+
     }
   setState(STATE_READY);
 }
@@ -632,7 +634,15 @@ void handleReverse(){
   okPage();
   long preload  = server.arg("reverse_time").toInt()*1000;
   stage = "Dry";
-  for (byte n = 0; n < PUMPS_NO; n++) {
+  for (int n = 0; n < PUMPS_NO; n++) {
+    Serial.println("Start reverse of " );
+    Serial.println(n );
+    
+    Serial.println( "pinForward ");
+    Serial.println(  pinForward[n]);
+    Serial.println( "pinReverse");
+    Serial.println(  pinReverse[n]);
+    
       sendReportUpdate();  
       sendState();
       printStage(n, F("Dry"));
@@ -640,6 +650,8 @@ void handleReverse(){
       pumpReverse(n);
       wait(preload, 10); 
       pumpStop(n);
+      Serial.println("End reverse " );
+      Serial.println(n);
   }
   sendReportUpdate();  
   setState(STATE_READY); 
