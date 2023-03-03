@@ -37,11 +37,17 @@ const char FW_version[] PROGMEM = "2.3.0";
   #include <func32.h>
 #endif
 
+
+// #include <LiquidCrystal_I2C.h>
+// LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
+#define _LCD_TYPE 1
+#include <LCD_1602_RUS_ALL.h>
+
+
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <WiFiClient.h>
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
 #include <HX711.h>
 #include <Adafruit_MCP23X17.h>
 #include <PubSubClient.h>
@@ -91,8 +97,12 @@ byte pumpWorking = -1;
 unsigned long sTime, eTime;
 
 
+ 
+
 Adafruit_MCP23X17 mcp;
-LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
+LCD_1602_RUS lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
+
+
 HX711 scale;
 
 State state;
@@ -119,7 +129,7 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {delay(500); Serial.println("WiFi.status" + WiFi.status());}
   lcd.setCursor(0, 1); 
-  lcd.print(WiFi.localIP()); 
+  lcd.print(String(WiFi.localIP())); 
 
   Serial.println(WiFi.localIP());
  

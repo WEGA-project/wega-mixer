@@ -351,7 +351,7 @@ long pumpToValue(byte n, float capValue, float capMillis, float allowedOscillati
   }
   pumpStop(n);
   printFunc(value);
-  lcd.setCursor(15, 1);lcd.print(exitCode);
+  lcd.setCursor(15, 1);lcd.print(String(exitCode));
   return millis() - startMillis;
 }
 
