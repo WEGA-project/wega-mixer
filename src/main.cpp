@@ -43,14 +43,10 @@ const char FW_version[] PROGMEM = "2.3.0";
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <HX711.h>
-#include <Adafruit_MCP23017.h>
+#include <Adafruit_MCP23X17.h>
 #include <PubSubClient.h>
 #include <EEPROM.h>
 #include <config.h>
-
-
-
-
 
 class Kalman { // https://github.com/denyssene/SimpleKalmanFilter
   private:
@@ -80,8 +76,8 @@ Kalman filter        = Kalman(1000, 80, 0.4);  // резкий
 
 #define PUMPS_NO 8
 const char* names[PUMPS_NO]        = {pump1n, pump2n, pump3n, pump4n, pump5n, pump6n, pump7n, pump8n};
-const byte pinForward[PUMPS_NO]    = {pump1,  pump2,  pump3,  pump4,  pump5,  pump6,  pump7,  pump8};
-const byte pinReverse[PUMPS_NO]    = {pump1r, pump2r, pump3r, pump4r, pump5r, pump6r, pump7r, pump8r};
+const long pinForward[PUMPS_NO]    = {pump1,  pump2,  pump3,  pump4,  pump5,  pump6,  pump7,  pump8};
+const long pinReverse[PUMPS_NO]    = {pump1r, pump2r, pump3r, pump4r, pump5r, pump6r, pump7r, pump8r};
 const long staticPreload[PUMPS_NO] = {pump1p, pump2p, pump3p, pump4p, pump5p, pump6p, pump7p, pump8p};
 const char* stateStr[]             = {"Ready", "Working", "Busy", "Pause", "Resume", "Reverse"};
 enum State {STATE_READY, STATE_WORKING, STATE_BUSY, STATE_PAUSE, STATE_RESUME, STATE_REVERSE};
@@ -95,7 +91,7 @@ byte pumpWorking = -1;
 unsigned long sTime, eTime;
 
 
-Adafruit_MCP23017 mcp;
+Adafruit_MCP23X17 mcp;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F // SDA = D1, SCL = D2
 HX711 scale;
 
@@ -141,6 +137,8 @@ void setup() {
   server.on("/rest/reset",   handleReset);
   server.on("/rest/reverse",   handleReverse);
 
+  server.on("/rest/pump_test",   pump_test);
+
   
 
   server.on("/",             mainPage);
@@ -154,7 +152,7 @@ void setup() {
   ArduinoOTA.begin();
 
 
-  mcp.begin();
+  mcp.begin_I2C();
   for (byte i = 0; i < PUMPS_NO; i++) {
     mcp.pinMode(pinForward[i], OUTPUT); 
     mcp.pinMode(pinReverse[i], OUTPUT);

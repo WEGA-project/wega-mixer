@@ -50,6 +50,16 @@ const char MAIN_page[] PROGMEM = R"=====(
 
         
     </p>
+    <p>
+            <a href="/rest/pump_test?pump_id=0">test 1 pomp</a>
+            <a href="/rest/pump_test?pump_id=1">test 2 pomp</a>
+            <a href="/rest/pump_test?pump_id=2">test 3 pomp</a>
+            <a href="/rest/pump_test?pump_id=3">test 4 pomp</a>
+            <a href="/rest/pump_test?pump_id=4">test 5 pomp</a>
+            <a href="/rest/pump_test?pump_id=5">test 6 pomp</a>
+            <a href="/rest/pump_test?pump_id=6">test 7 pomp</a>
+            <a href="/rest/pump_test?pump_id=7">test 8 pomp</a>
+    </p>
     ver: <span id='version'></span>
 </form>
 

@@ -629,20 +629,38 @@ void handleReset(){
     
  
 
+void pump_test(){  
+    long pump_test_id  = server.arg("pump_id").toInt();
+    okPage();
+    long preload  = 5*1000;
+    Serial.println("Start forward pump_test of " + String(pump_test_id) + "pinForward " + String(pinForward[pump_test_id]) + "pinReverse" + String(pinReverse[pump_test_id])   );
+    mcp.digitalWrite(pinForward[pump_test_id], LOW); 
+    mcp.digitalWrite(pinReverse[pump_test_id], LOW); 
+
+    sendReportUpdate();  
+    sendState();
+    pumpStart(pump_test_id);
+    wait(preload, 10); 
+    pumpStop(pump_test_id);
+    Serial.println("End forward "  + String(pump_test_id) );
+
+    Serial.println("Start reverse pump_test of " + String(pump_test_id) + "pinForward " + String(pinForward[pump_test_id]) + "pinReverse" + String(pinReverse[pump_test_id])   );
+    pumpReverse(pump_test_id);
+    wait(preload, 10); 
+    pumpStop(pump_test_id);
+    Serial.println("End reverse "  + String(pump_test_id) );
+    sendReportUpdate();  
+    setState(STATE_READY); 
+}
+
+
 void handleReverse(){  
   setState(STATE_REVERSE);
   okPage();
   long preload  = server.arg("reverse_time").toInt()*1000;
   stage = "Dry";
-  for (int n = 0; n < PUMPS_NO; n++) {
-    Serial.println("Start reverse of " );
-    Serial.println(n );
-    
-    Serial.println( "pinForward ");
-    Serial.println(  pinForward[n]);
-    Serial.println( "pinReverse");
-    Serial.println(  pinReverse[n]);
-    
+  for (long n = 0; n < PUMPS_NO; n++) {
+    Serial.println("Start reverse of " + String(n) + "pinForward " + String(pinForward[n]) + "pinReverse" + String(pinReverse[n])   );
       sendReportUpdate();  
       sendState();
       printStage(n, F("Dry"));
@@ -650,8 +668,8 @@ void handleReverse(){
       pumpReverse(n);
       wait(preload, 10); 
       pumpStop(n);
-      Serial.println("End reverse " );
-      Serial.println(n);
+      Serial.println("End reverse "  + String(n) );
+ 
   }
   sendReportUpdate();  
   setState(STATE_READY); 
