@@ -32,7 +32,7 @@ const char FW_version[] PROGMEM = "2.3.0";
   WebServer server(80);
   const int LOADCELL_DOUT_PIN = 13;
   const int LOADCELL_SCK_PIN = 14;
-    const int WIRE_PIN_SDA = 21;
+  const int WIRE_PIN_SDA = 21;
   const int WIRE_PIN_SCL = 22;
   #include <func32.h>
 #endif
@@ -137,7 +137,7 @@ void test_all_on(){
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("setup");
+  Serial.println("setup: WIRE_PIN_SDA "+ String(WIRE_PIN_SDA) + " WIRE_PIN_SCL " + String(WIRE_PIN_SCL));
   Wire.begin(WIRE_PIN_SDA, WIRE_PIN_SCL);
   Serial.println("Wire");
   
