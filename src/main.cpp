@@ -111,6 +111,23 @@ void setState(State s);
 #include <func.h>
 
 
+
+void test_all_on(){
+
+ for (long i = 0; i <= PUMPS_NO; i ++) {
+      Serial.println("diable: " + String(i) );
+      mcp.digitalWrite(i, LOW); 
+ 
+  }
+
+  for (long i = 0; i <= PUMPS_NO; i ++) {
+      Serial.println("enable: " + String(i) );
+      mcp.digitalWrite(i, HIGH); 
+      delay(10000);
+  }
+}
+
+
 void setup() {
   Serial.begin(9600);
   Serial.println("setup");
