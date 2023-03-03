@@ -216,19 +216,19 @@ void setup() {
 }
 
 void loop() {
-  test_all_on();
-  delay(1000);
+  // test_all_on();
+  // delay(1000);
 
-  // readScales(scale_read_times);
-  // printStatus(stateStr[state]); 
-  // printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
-  // server.handleClient();
-  // ArduinoOTA.handle();
-  // mdns_update();
-  // if (lastSentTime + 5000 < millis()) {
-  //   lastSentTime = millis();
-  //   sendScalesValue();  
-  //   }
-  // if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); }
-  // delay(100);
+  readScales(scale_read_times);
+  printStatus(stateStr[state]); 
+  printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
+  server.handleClient();
+  ArduinoOTA.handle();
+  mdns_update();
+  if (lastSentTime + 5000 < millis()) {
+    lastSentTime = millis();
+    sendScalesValue();  
+    }
+  if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); }
+  delay(100);
 }
