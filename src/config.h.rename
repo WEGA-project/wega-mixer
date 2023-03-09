@@ -33,7 +33,7 @@ String wegadb = "mixer";
 // web hpg calculator intergration
 // заменить только токен на свой, остальные параметры передаются с калькулятора
 // работает при передачи параметров с веь калькулятора - в других случаях отключено
-const char* calc_token = 123123123-123123123-123-123-123123123123";
+const char* calc_token = "123123123-123123123-123-123-123123123123";
 const char* calc_url  = "calc.progl.su";
 const char* calc_mqtt_user = "mixer";
 const char* calc_mqtt_password = "mixer2022";
