@@ -22,11 +22,11 @@ const char FW_version[] PROGMEM = "2.3.0";
   WiFiClient subscription[SSE_MAX_CHANNELS];
   #include <func8266.h>
 #endif
-
+ 
 #if mixerplatform == 32
   #include <WiFi.h>
   #include <WebServer.h>
-  #include <mDNS.h>
+  #include <ESPmDNS.h>
   #include <HTTPClient.h>
   WiFiClient subscription[SSE_MAX_CHANNELS];
   WebServer server(80);
