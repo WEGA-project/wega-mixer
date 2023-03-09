@@ -134,6 +134,9 @@ void test_all_on(){
   delay(10000);
 }
 
+String toString(const IPAddress& address){
+  return String() + address[0] + "." + address[1] + "." + address[2] + "." + address[3];
+}
 
 void setup() {
   Serial.begin(9600);
@@ -153,7 +156,7 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {delay(500); Serial.println("WiFi.status" + WiFi.status());}
   lcd.setCursor(0, 1); 
-  lcd.print(String(WiFi.localIP())); 
+  lcd.print(toString(WiFi.localIP())); 
 
   Serial.println(WiFi.localIP());
  
