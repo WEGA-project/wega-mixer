@@ -17,7 +17,7 @@ const char MAIN_page[] PROGMEM = R"=====(
 <link rel='stylesheet' type='text/css' href='style.css'>
 <form action="/rest/start">
     Status: <span id='state'>Wait</span><br>
-    <p style="text-align:left;">Scales = <span id='weight'></span> <span id='timer' style="float:right;"></span></p>
+    <p style="text-align:left;">update wifi and cabel from calc is working! :) Scales = <span id='weight'></span> <span id='timer' style="float:right;"></span></p>
     <fieldset>
       <legend id='solutionA'>A</legend>
         <p>P1 = <input type='text' name='p1'/> <span id='n1'></span><span id='r1'/></p>

@@ -11,7 +11,10 @@ const char FW_version[] PROGMEM = "2.3.0";
   #include <ESP8266WebServer.h>
   #include <ESP8266mDNS.h>
   #include <ESP8266HTTPClient.h>
+  #include <ESP8266HTTPUpdateServer.h>
+  
   ESP8266WebServer server(80);
+  ESP8266HTTPUpdateServer httpUpdater;
   const int LOADCELL_DOUT_PIN = D5;
   const int LOADCELL_SCK_PIN = D6;
   
@@ -28,8 +31,13 @@ const char FW_version[] PROGMEM = "2.3.0";
   #include <WebServer.h>
   #include <ESPmDNS.h>
   #include <HTTPClient.h>
+  #include <HTTPUpdateServer.h>
+  
+ 
+
   WiFiClient subscription[SSE_MAX_CHANNELS];
   WebServer server(80);
+  HTTPUpdateServer httpUpdater;
   const int LOADCELL_DOUT_PIN = 13;
   const int LOADCELL_SCK_PIN = 14;
   const int WIRE_PIN_SDA = 21;
@@ -134,6 +142,8 @@ void test_all_on(){
   delay(10000);
 }
 
+ 
+
 String toString(const IPAddress& address){
   return String() + address[0] + "." + address[1] + "." + address[2] + "." + address[3];
 }
@@ -159,7 +169,12 @@ void setup() {
   lcd.print(toString(WiFi.localIP())); 
 
   Serial.println(WiFi.localIP());
+
+   
+  
  
+ 
+
  
   
   server.on("/rest/events",  handleSubscribe);
@@ -181,7 +196,14 @@ void setup() {
   server.on("/",             mainPage);
   server.on("/calibration",  calibrationPage);
   server.on("/style.css",    cssPage);
+  
+  httpUpdater.setup(&server);
+ 
+  server.enableCORS(true);
   server.begin();
+
+  
+
   ArduinoOTA.onStart([]() {});
   ArduinoOTA.onEnd([]() {});
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
