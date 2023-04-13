@@ -57,9 +57,11 @@ void appendJson(String& src, const __FlashStringHelper* name, const T& value, co
 }
 
 void send_mqtt_msg(String tmsg ){
-  if (!mqqt_client.loop()) { mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password);  }
-  snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), 0);
-  mqqt_client.publish("mixer", mqtt_msg);
+  #if MQTT_ENABLE == true
+    if (!mqqt_client.loop()) { mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password);  }
+    snprintf (mqtt_msg, MSG_BUFFER_SIZE, tmsg.c_str(), 0);
+    mqqt_client.publish("mixer", mqtt_msg);
+  #endif  
 
 }
 

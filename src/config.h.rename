@@ -22,7 +22,7 @@ int scale_tare_times = 12;
 
 // Kalman filtering in scales mode
 #define KALMAN true
-
+#define  MQTT_ENABLE false
 // Setting WEGA-API URL
  #define WegaApiUrl "http://WEGA_IP_ADDRESS/wega-api/mixerdb.php"
 // Replace wegaauth with your secret key

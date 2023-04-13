@@ -229,10 +229,12 @@ void setup() {
   setState(STATE_READY);
   readScales(scale_read_times);
   uint16_t buf_size= 512;
+
+       #if MQTT_ENABLE == true
   mqqt_client.setBufferSize(buf_size);
   mqqt_client.setServer(calc_url, calc_mqtt_port);
   mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); 
-   
+  #endif  
   EEPROM.get(0, curvol);  
   EEPROM.get(1, goal);  
   EEPROM.get(2, staticPreload);  
@@ -288,6 +290,10 @@ void loop() {
     lastSentTime = millis();
     sendScalesValue();  
     }
+
+    #if MQTT_ENABLE == true
   if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); }
+  #endif  
+
   delay(100);
 }
