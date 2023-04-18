@@ -169,13 +169,6 @@ void setup() {
   lcd.print(toString(WiFi.localIP())); 
 
   Serial.println(WiFi.localIP());
-
-   
-  
- 
- 
-
- 
   
   server.on("/rest/events",  handleSubscribe);
   server.on("/rest/meta",    handleMeta);
@@ -209,7 +202,14 @@ void setup() {
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {});
   ArduinoOTA.onError([](ota_error_t error) {});
   ArduinoOTA.begin();
-
+  Serial.println("sleep 50 for ota");
+  lcd.print("Wait 5s OTA"); 
+  int wait_ota = 0;
+  while (wait_ota<5000){
+    wait_ota+=1;
+    delay(1);
+    ArduinoOTA.handle();
+    }
 
   mcp.begin_I2C();
   for (byte i = 0; i < PUMPS_NO; i++) {
@@ -280,20 +280,26 @@ void loop() {
   // test_all_on();
   // delay(1000);
 
-  readScales(scale_read_times);
+  
+  #if USUAL_READ_SCALE_WITH_CHECK == true
+    readScalesWithCheck(scale_read_times);
+  #else
+    readScales(scale_read_times);
+  #endif  
+
+
   printStatus(stateStr[state]); 
   printProgressValueOnly(rawToUnits(displayFilter.getEstimation()));
   server.handleClient();
   ArduinoOTA.handle();
   mdns_update();
-  if (lastSentTime + 5000 < millis()) {
+  if (lastSentTime + 1000 < millis()) {
     lastSentTime = millis();
     sendScalesValue();  
     }
 
-    #if MQTT_ENABLE == true
+  #if MQTT_ENABLE == true
   if (!mqqt_client.loop()){ mqqt_client.connect(calc_token, calc_mqtt_user, calc_mqtt_password); }
   #endif  
-
   delay(100);
 }

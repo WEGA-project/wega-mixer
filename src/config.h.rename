@@ -17,8 +17,12 @@ const char* password = "YOUR_WIFI_PASSWORD";
 // scale_calibration, side A and B
 float scale_calibration_A = 2030;
 float scale_calibration_B = 2030;
+// для быстрой работы поставить 12, для более точного налива рекмендуется от 24 до 200 значение - чем больше тем точнее. Обязательно перед этим откалибровать, стол не должен дребезжать, шататься при значениях более 12
 int scale_read_times = 12;
 int scale_tare_times = 12;
+
+// для быстрой работы поставить false - влияет только на отображание весов в вебке/мониторе, на налив не влияет
+#define  USUAL_READ_SCALE_WITH_CHECK false
 
 // Kalman filtering in scales mode
 #define KALMAN true
